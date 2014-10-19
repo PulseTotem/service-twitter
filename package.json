@@ -1,4 +1,7 @@
 {
 	"name": "service-twitter",
-	"version": "0.0.1"
+	"version": "0.0.1",
+	"devDependencies": {
+		"oauth": "0.9.12"
+	}
 }
