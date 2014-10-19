@@ -13,6 +13,6 @@
     "grunt-mocha-test": "~0.12.0",
     "grunt-contrib-yuidoc": "~0.5.2",
     "grunt-npm-install": "~0.1.0",
-    "grunt-update-json": "~0.2.0"
+    "grunt-update-json": "~0.1.3"
   }
 }
