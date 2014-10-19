@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "devDependencies": {
     "twitter": "0.2.12",
-    "util": "0.10.3",
     "grunt": "^0.4.4",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-watch": "^0.6.1",
