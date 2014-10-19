@@ -154,7 +154,7 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['build']);
 
     grunt.registerTask('build', function () {
-        grunt.task.run(['clean:build']);
+        grunt.task.run(['clean:package', 'clean:build']);
 
         grunt.task.run(['update_json:packageBuild', 'copy:buildPackageBak', 'copy:buildPackageReplace', 'npm-install', 'copy:buildPackageReinit', 'typescript:build', 'clean:package']);
     });
@@ -164,7 +164,7 @@ module.exports = function (grunt) {
     grunt.registerTask('doc', ['clean:doc', 'yuidoc']);
 
     grunt.registerTask('test', function() {
-        grunt.task.run(['clean:test']);
+        grunt.task.run(['clean:package', 'clean:test']);
 
         grunt.task.run(['update_json:packageBuild', 'copy:buildPackageBak', 'copy:buildPackageReplace', 'npm-install', 'copy:buildPackageReinit', 'typescript:test', 'mochaTest:test']);
     });
