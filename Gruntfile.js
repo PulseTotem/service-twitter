@@ -12,13 +12,35 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
+    grunt.loadNpmTasks('grunt-contrib-symlink');
 
     // tasks
     grunt.initConfig({
 
+        coreReposConfig : grunt.file.readJSON('core-repos-config.json'),
+
 // ---------------------------------------------
 //                               configure tasks
 // ---------------------------------------------
+        symlink: {
+            // Enable overwrite to delete symlinks before recreating them
+            options: {
+                overwrite: false
+            },
+            // The "build/target.txt" symlink will be created and linked to
+            // "source/target.txt". It should appear like this in a file listing:
+            // build/target.txt -> ../source/target.txt
+            core: {
+                src: '<%= coreReposConfig.coreRepoPath %>',
+                dest: 't6s-core/core'
+            },
+
+            coreBackend: {
+                src: '<%= coreReposConfig.coreBackendRepoPath %>',
+                dest: 't6s-core/core-backend'
+            }
+        },
+
         update_json: {
             packageBuild: {
                 src: ['t6s-core/core-backend/package.json', 'package.json'],
@@ -152,6 +174,8 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('default', ['build']);
+
+    grunt.registerTask('init', ['symlink']);
 
     grunt.registerTask('build', function () {
         grunt.task.run(['clean:package', 'clean:build']);

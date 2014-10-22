@@ -1,4 +1,5 @@
 .idea
-t6s-core
+t6s-core/*
 node_modules
 build
+core-repos-config.json
