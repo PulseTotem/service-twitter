@@ -8,9 +8,9 @@
 
 /// <reference path="../t6s-core/core-backend/scripts/Logger.ts" />
 
-var http = require("http");
-var express = require("express");
-var sio = require("socket.io");
+//var http = require("http");
+//var express = require("express");
+//var sio = require("socket.io");
 var twitterClient = require('twitter');
 var util = require('util');
 
@@ -23,13 +23,13 @@ class Twitter {
 		var io = sio.listen(httpServer);
        */
 		var twit = new twitterClient({
-			consumer_key: 'STATE YOUR NAME',
-			consumer_secret: 'STATE YOUR NAME',
-			access_token_key: 'STATE YOUR NAME',
-			access_token_secret: 'STATE YOUR NAME'
+			consumer_key: '',
+			consumer_secret: '',
+			access_token_key: '',
+			access_token_secret: ''
 		});
 
-		twit.get('/statuses/show/27593302936.json', {include_entities:true}, function(data) {
+		twit.get('/statuses/user_timeline.json', {include_entities:true, screen_name: "Neo_nderthalis"}, function(data) {
 			console.log(util.inspect(data));
 		});
 	}
