@@ -35,5 +35,34 @@ class Twitter {
 	}
 }
 
+var logLevel = LoggerLevel.Error;
+
+if(process.argv.length > 2) {
+    var param = process.argv[2];
+    var keyVal = param.split("=");
+    if(keyVal.length > 1) {
+        if (keyVal[0] == "loglevel") {
+            switch(keyVal[1]) {
+                case "error" :
+                    logLevel = LoggerLevel.Error;
+                    break;
+                case "warning" :
+                    logLevel = LoggerLevel.Warning;
+                    break;
+                case "info" :
+                    logLevel = LoggerLevel.Info;
+                    break;
+                case "debug" :
+                    logLevel = LoggerLevel.Debug;
+                    break;
+                default :
+                    logLevel = LoggerLevel.Error;
+            }
+        }
+    }
+}
+
+Logger.setLevel(logLevel);
+
 var twitter = new Twitter();
 twitter.run();
