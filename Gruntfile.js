@@ -92,7 +92,8 @@ module.exports = function (grunt) {
             },
             build: {
                 options: {
-                    script: 'build/js/Service-Twitter.js'
+                    script: 'build/js/Service-Twitter.js',
+                    args: ["loglevel=debug"]
                 }
             }
         },

@@ -7,6 +7,7 @@
 /// <reference path="../t6s-core/core-backend/libsdef/socket.io-0.9.10.d.ts" />
 
 /// <reference path="../t6s-core/core-backend/scripts/Logger.ts" />
+/// <reference path="../t6s-core/core-backend/scripts/LoggerLevel.ts" />
 
 //var http = require("http");
 //var express = require("express");
