@@ -30,11 +30,6 @@ module.exports = function (grunt) {
             // The "build/target.txt" symlink will be created and linked to
             // "source/target.txt". It should appear like this in a file listing:
             // build/target.txt -> ../source/target.txt
-            core: {
-                src: '<%= coreReposConfig.coreRepoPath %>',
-                dest: 't6s-core/core'
-            },
-
             coreBackend: {
                 src: '<%= coreReposConfig.coreBackendRepoPath %>',
                 dest: 't6s-core/core-backend'
