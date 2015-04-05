@@ -1,69 +1,65 @@
 /**
- * @author Simon Urli <simon@the6thscreen.fr>
+ * @author Christian Brel <christian@the6thscreen.fr, ch.brel@gmail.com>
  */
 
-/// <reference path="../t6s-core/core-backend/libsdef/node.d.ts" />
-/// <reference path="../t6s-core/core-backend/libsdef/express.d.ts" />
-/// <reference path="../t6s-core/core-backend/libsdef/socket.io-0.9.10.d.ts" />
-
+/// <reference path="../t6s-core/core-backend/scripts/server/SourceServer.ts" />
 /// <reference path="../t6s-core/core-backend/scripts/Logger.ts" />
-/// <reference path="../t6s-core/core-backend/scripts/LoggerLevel.ts" />
 
-//var http = require("http");
-//var express = require("express");
-//var sio = require("socket.io");
-var twitterClient = require('twitter');
-var util = require('util');
+/// <reference path="./TwitterNamespaceManager.ts" />
 
-class Twitter {
-	run() {
-		/*var listeningPort = process.env.PORT_TWITTER || 4001;
 
-		var app = express();
-		var httpServer = http.createServer(app);
-		var io = sio.listen(httpServer);
-       */
-		var twit = new twitterClient({
-			consumer_key: '',
-			consumer_secret: '',
-			access_token_key: '',
-			access_token_secret: ''
-		});
 
-		twit.get('/statuses/user_timeline.json', {include_entities:true, screen_name: "Neo_nderthalis"}, function(data) {
-			console.log(util.inspect(data));
-		});
-	}
-}
+/**
+ * Represents the The 6th Screen Twitter' Service.
+ *
+ * @class Twitter
+ * @extends SourceServer
+ */
+class Twitter extends SourceServer {
 
-var logLevel = LoggerLevel.Error;
 
-if(process.argv.length > 2) {
-    var param = process.argv[2];
-    var keyVal = param.split("=");
-    if(keyVal.length > 1) {
-        if (keyVal[0] == "loglevel") {
-            switch(keyVal[1]) {
-                case "error" :
-                    logLevel = LoggerLevel.Error;
-                    break;
-                case "warning" :
-                    logLevel = LoggerLevel.Warning;
-                    break;
-                case "info" :
-                    logLevel = LoggerLevel.Info;
-                    break;
-                case "debug" :
-                    logLevel = LoggerLevel.Debug;
-                    break;
-                default :
-                    logLevel = LoggerLevel.Error;
-            }
-        }
+
+    /**
+     * Constructor.
+     *
+     * @param {number} listeningPort - Server's listening port..
+     * @param {Array<string>} arguments - Server's command line arguments.
+     */
+    constructor(listeningPort : number, arguments : Array<string>) {
+        super(listeningPort, arguments);
+
+        this.init();
+    }
+
+    /**
+     * Method to init the Twitter server.
+     *
+     * @method init
+     */
+    init() {
+        var self = this;
+
+        this.addNamespace("Twitter", TwitterNamespaceManager);
     }
 }
 
-Logger.setLevel(logLevel);
+/**
+ * Server's Twitter listening port.
+ *
+ * @property _TwitterListeningPort
+ * @type number
+ * @private
+ */
+var _TwitterListeningPort : number = process.env.PORT_Twitter || 6004;
 
-var twitter = new Twitter();
-twitter.run();
+/**
+ * Server's Twitter command line arguments.
+ *
+ * @property _TwitterArguments
+ * @type Array<string>
+ * @private
+ */
+var _TwitterArguments : Array<string> = process.argv;
+
+var serverInstance = new Twitter(_TwitterListeningPort, _TwitterArguments);
+serverInstance.run();
