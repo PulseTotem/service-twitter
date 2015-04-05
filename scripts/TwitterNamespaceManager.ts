@@ -17,6 +17,8 @@ var datejs : any = require('datejs');
 var DateJS : any = <any>Date;
 var uuid : any = require('node-uuid');
 
+var util = require('util');
+
 class TwitterNamespaceManager extends SourceNamespaceManager {
 
     /**
@@ -27,127 +29,56 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
      */
     constructor(socket : any) {
         super(socket);
-        this.addListenerToSocket('RetrieveFeedContent', this.retrieveFeedContent);
-
-		//TODO !!!!!!!
-
+        this.addListenerToSocket('LastTweetsFromSearch', this.retrieveLastTweetsFromSearch);
     }
 
     /**
-     * Retrieve a RSS/ATOM Feed and return the feed in "InfoType" format.
+     * Retrieve last tweets from search and return the tweets in "TweetList" format.
      *
-     * @method retrieveFeedContent
-     * @param {Object} params - Params to retrieve feed : Feed URL and limit of articles to return.
-     * @param {RSSFeedReaderNamespaceManager} self - the RSSFeedReaderNamespaceManager's instance.
+     * @method retrieveLastTweetsFromSearch
+     * @param {Object} params - Params to retrieve tweets : search query and limit of tweets to return.
+     * @param {TwitterNamespaceManager} self - the TwitterNamespaceManager's instance.
      */
-    retrieveFeedContent(params : any, self : TwitterNamespaceManager = null) {
+	retrieveLastTweetsFromSearch(params : any, self : TwitterNamespaceManager = null) {
         if(self == null) {
             self = this;
         }
 
-        Logger.debug("RetrieveFeedContent Action with params :");
+        Logger.debug("LastTweetsFromSearch Action with params :");
         Logger.debug(params);
-        //TODO : Change format
-        //TODO : Send result to SourcesServer
 
-        var nbSend = 0;
+		var fail = function(error) {
+			if(error) {
+				Logger.error(error);
+			}
+		};
 
-        self.fetch(params.FeedURL, function(item) {
-            var feedContent:FeedContent = new FeedContent();
-            //var feedContentOk = false;
-            //if(!feedContentOk) {
-            feedContent.setId(uuid.v1());
-            feedContent.setPriority(0);
-            if (item.meta.date != null && typeof(item.meta.date) != "undefined") {
-                var creaDesc:string = item.meta.date.toString();
-                var creaDate:any = DateJS.parse(creaDesc);
-                feedContent.setCreationDate(creaDate);
-                feedContent.setObsoleteDate(creaDate.addDays(7));
-            }
-            feedContent.setDurationToDisplay(10000);
+		var success = function(oauthActions) {
+			var successSearch = function(result) {
+				var tweets = result.statuses;
+				var tweetList:TweetList = new TweetList();
 
-            feedContent.setTitle(item.meta.title);
-            feedContent.setDescription(item.meta.description);
-            feedContent.setUrl(item.meta.xmlUrl);
-            feedContent.setLanguage(item.meta.language);
-            if(typeof(item.meta.image.url) != "undefined") {
-                feedContent.setLogo(item.meta.image.url);
-            }
-                //feedContentOk = true;
-            //}
+				tweetList.setId(uuid.v1());
+				tweetList.setPriority(0);
 
-            var pubDate : any = DateJS.parse(item.pubDate);
+				for(var iTweet in tweets) {
+					var item : any = tweets[iTweet];
+					var tweet:Tweet = new Tweet(item._id, 0, new Date(), new Date(), 10000);
+					tweet.setMessage(item.text);
 
-            var feedNode : FeedNode = new FeedNode(item.guid, 0, pubDate, pubDate.addDays(7), 10000);
-            feedNode.setTitle(item.title);
-            feedNode.setDescription(item.description);
-            feedNode.setSummary(item.summary);
-            feedNode.setAuthor(item.author);
-            feedNode.setUrl(item.link);
-            if(item.image != null && typeof(item.image) != "undefined" && item.image.url != null && typeof(item.image.url) != "undefined") {
-                feedNode.setMediaUrl(item.image.url);
-            }
+					tweetList.addTweet(tweet);
+				}
 
-            feedContent.addFeedNode(feedNode);
+				Logger.debug("Send TweetList to Client : ");
+				Logger.debug(tweetList);
 
-            nbSend++;
-            Logger.debug("Send FeedContent to Client : " + nbSend);
-            Logger.debug(feedContent);
+				self.sendNewInfoToClient(tweetList);
+			};
 
-            self.sendNewInfoToClient(feedContent);
+			var searchUrl = '/1.1/search/tweets.json?q=' + params.SearchQuery + '&count=' + params.Limit + '&result_type=recent';
+			oauthActions.get(searchUrl, successSearch, fail);
+		};
 
-        }, function(err) {
-            if (err) {
-                //console.log(err, err.stack);
-                Logger.error(err);
-            }
-        });
-    }
-
-    fetch(feed, itemProcessFunction, errorCB) {
-        var self = this;
-        // Define our streams
-        var req = request(feed, {timeout: 10000, pool: false});
-        req.setMaxListeners(50);
-
-        // Some feeds do not respond without user-agent and accept headers.
-        req.setHeader('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36');
-        req.setHeader('accept', 'text/html,application/xhtml+xml');
-
-        var feedparser = new FeedParser();
-
-        // Define our handlers
-        req.on('error', errorCB);
-
-        req.on('response', function(res) {
-            var stream = this;
-
-            if (res.statusCode != 200) {
-                return this.emit('error', new Error('Bad status code'));
-                //Logger.error("Bad status code.");
-            }
-
-            stream.pipe(feedparser);
-        });
-
-        feedparser.on('error', errorCB);
-
-        feedparser.on('readable', function() {
-
-            // This is where the action is!
-            var stream = this;
-            var item;
-            //var meta = this.meta // **NOTE** the "meta" is always available in the context of the feedparser instance
-
-            while (item = stream.read()) {
-                itemProcessFunction(item);
-            }
-
-            /*var post;
-            while (post = this.read()) {
-                itemProcessFunction(post);
-            }
-            endFetchProcessFunction();*/
-        });
+		self.manageOAuth('twitter', params.oauthKey, success, fail);
     }
 }
