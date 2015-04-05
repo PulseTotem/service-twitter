@@ -63,7 +63,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 
 				for(var iTweet in tweets) {
 					var item : any = tweets[iTweet];
-					var tweet:Tweet = new Tweet(item._id, 0, new Date(), new Date(), 10000);
+					var tweet:Tweet = new Tweet(item.id_str, 0, new Date(), new Date(), 10000);
 					tweet.setMessage(item.text);
 
 					tweetList.addTweet(tweet);
