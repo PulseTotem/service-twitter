@@ -47,6 +47,17 @@ module.exports = function (grunt) {
                     'devDependencies',
                     'overrides'
                 ]
+            },
+            packageHeroku: {
+              src: ['t6s-core/core-backend/package.json'],
+              dest: 'heroku/package.json',
+              fields: [
+                'name',
+                'version',
+                'dependencies',
+                'devDependencies',
+                'overrides'
+              ]
             }
         },
 // ---------------------------------------------
@@ -63,6 +74,9 @@ module.exports = function (grunt) {
             },
             buildPackageReinit: {
                 files: 	[{'package.json': 'package-bak.json'}]
+            },
+            heroku: {
+              files: 	[{expand: true, cwd: 'build', src: ['**'], dest: 'heroku'}]
             }
         },
 
@@ -83,7 +97,7 @@ module.exports = function (grunt) {
 
         express: {
             options: {
-                port: 4000
+                port: 6004
             },
             build: {
                 options: {
@@ -163,6 +177,7 @@ module.exports = function (grunt) {
         clean: {
             package: ['package-bak.json', 'package-tmp.json'],
             build: ['build/'],
+            heroku: ['heroku/'],
             doc: ['doc'],
             test: ['build/tests/Test.js']
         }
@@ -177,6 +192,12 @@ module.exports = function (grunt) {
         grunt.task.run(['clean:package', 'clean:build']);
 
         grunt.task.run(['update_json:packageBuild', 'copy:buildPackageBak', 'copy:buildPackageReplace', 'npm-install', 'copy:buildPackageReinit', 'typescript:build', 'clean:package']);
+    });
+
+    grunt.registerTask('heroku', function () {
+      grunt.task.run(['clean:heroku']);
+
+      grunt.task.run(['build', 'update_json:packageHeroku', 'copy:heroku']);
     });
 
     grunt.registerTask('develop', ['build', 'express:build', 'watch']);
