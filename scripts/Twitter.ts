@@ -50,7 +50,7 @@ class Twitter extends SourceServer {
  * @type number
  * @private
  */
-var _TwitterListeningPort : number = process.env.PORT_Twitter || 6004;
+var _TwitterListeningPort : number = process.env.PORT || 6004;
 
 /**
  * Server's Twitter command line arguments.
