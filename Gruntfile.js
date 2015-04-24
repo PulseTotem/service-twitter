@@ -77,6 +77,9 @@ module.exports = function (grunt) {
             },
             heroku: {
               files: 	[{expand: true, cwd: 'build', src: ['**'], dest: 'heroku'}]
+            },
+            herokuProcfile: {
+              files: 	[{expand: true, cwd: 't6s-core/core-backend', src: ['Procfile'], dest: 'heroku'}]
             }
         },
 
@@ -85,7 +88,7 @@ module.exports = function (grunt) {
                 src: [
                     'scripts/**/*.ts'
                 ],
-                dest: 'build/js/Service-Twitter.js'
+                dest: 'build/js/Service.js'
             },
             test: {
                 src: [
@@ -101,7 +104,7 @@ module.exports = function (grunt) {
             },
             build: {
                 options: {
-                    script: 'build/js/Service-Twitter.js',
+                    script: 'build/js/Service.js',
                     args: ["loglevel=debug"]
                 }
             }
@@ -113,7 +116,7 @@ module.exports = function (grunt) {
 // ---------------------------------------------
         watch: {
             express: {
-                files:  [ 'build/js/Service-Twitter.js' ],
+                files:  [ 'build/js/Service.js' ],
                 tasks:  [ 'express:build' ],
                 options: {
                     spawn: false
@@ -197,7 +200,7 @@ module.exports = function (grunt) {
     grunt.registerTask('heroku', function () {
       grunt.task.run(['clean:heroku']);
 
-      grunt.task.run(['build', 'update_json:packageHeroku', 'copy:heroku']);
+      grunt.task.run(['build', 'update_json:packageHeroku', 'copy:heroku', 'copy:herokuProcfile']);
     });
 
     grunt.registerTask('develop', ['build', 'express:build', 'watch']);
