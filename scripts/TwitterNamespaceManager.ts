@@ -107,9 +107,6 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
             self = this;
         }
 
-        Logger.debug("LastTweetsFromSearch Action with params :");
-        Logger.debug(params);
-
 		var fail = function(error) {
 			if(error) {
 				Logger.error(error);
@@ -119,6 +116,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 		var success = function(oauthActions) {
 			var successSearch = function(result) {
 				var tweets = result.statuses;
+
 				var tweetList:TweetList = new TweetList();
 
 				tweetList.setId(uuid.v1());
@@ -127,7 +125,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 				for(var iTweet in tweets) {
 					var item : any = tweets[iTweet];
 
-					var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), 10000);
+					var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(params.InfoDuration));
 
 					var owner : User = self.retrieveTwitterUser(item);
 
@@ -171,9 +169,6 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 					tweetList.addTweet(tweet);
 				}
 
-				Logger.debug("Send TweetList to Client : ");
-				Logger.debug(util.inspect(tweetList));
-
 				self.sendNewInfoToClient(tweetList);
 			};
 
@@ -208,5 +203,5 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 
 		self.manageOAuth('twitter', params.oauthKey, success, fail);
 	}
-	* /
+	*/
 }
