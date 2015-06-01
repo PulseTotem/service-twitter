@@ -121,6 +121,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 
 				tweetList.setId(uuid.v1());
 				tweetList.setPriority(0);
+				tweetList.setDurationToDisplay(parseInt(params.InfoDuration)*tweets.length);
 
 				for(var iTweet in tweets) {
 					var item : any = tweets[iTweet];
