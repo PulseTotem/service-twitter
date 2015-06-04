@@ -16,11 +16,15 @@
 /// <reference path="../TwitterNamespaceManager.ts" />
 /// <reference path="../TwitterUtils.ts" />
 
-class LastTweetsFromSearch extends TwitterUtils {
+class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 
 	constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
 		super(params, twitterNamespaceManager);
+	}
+
+	private computeSourceUrl = function (totalNumbers) {
+		return '/1.1/statuses/user_timeline.json?screen_name=' + this.getParams().ScreenName + '&count=' + totalNumbers + '&exclude_replies=true&include_rts=true';
 	}
 
 	public run() {
@@ -51,16 +55,21 @@ class LastTweetsFromSearch extends TwitterUtils {
 
 						min_id = Math.min(min_id, item.id);
 
-						if (typeof(item.retweeted_status) == "undefined" || typeof(item.retweeted_status.id_str) == "undefined") {
+						var tweet : Tweet = self.createTweet(item);
 
-							var tweet : Tweet = self.createTweet(item);
-							tweetList.addTweet(tweet);
+						if (typeof(item.retweeted_status) != "undefined" || typeof(item.retweeted_status.id_str) != "undefined") {
 
-							if(tweetList.getTweets().length == parseInt(self.getParams().Limit)) {
-								break;
-							}
+							var originalTweet : Tweet = self.createTweet(item.retweeted_status);
+							tweet.setOriginalTweet(originalTweet);
+						}
 
-						} // else, it's a retweet so by pass it ! //TODO : Maybe allow retweets through a param...
+						tweetList.addTweet(tweet);
+
+						if(tweetList.getTweets().length == parseInt(self.getParams().Limit)) {
+							break;
+						}
+
+						// else, it's a retweet so by pass it ! //TODO : Maybe allow retweets through a param...
 					}
 
 					if(tweetList.getTweets().length < parseInt(self.getParams().Limit) && tweets.length == totalNumbers) {
@@ -70,7 +79,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 							manageTweetsResult(olderTweetsResult);
 						};
 
-						var searchOlderUrl = '/1.1/search/tweets.json?q=' + self.getParams().SearchQuery + '&count=' + totalNumbers + '&result_type=recent&max_id=' + min_id.toString();
+						var searchOlderUrl = self.computeSourceUrl(totalNumbers)+'&max_id=' + min_id.toString();
 						oauthActions.get(searchOlderUrl, successSearchOlder, fail);
 					} else {
 						tweetList.setDurationToDisplay(parseInt(self.getParams().InfoDuration) * tweetList.getTweets().length);
@@ -82,8 +91,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 				manageTweetsResult(tweetsResult);
 			};
 
-			var searchUrl = '/1.1/search/tweets.json?q=' + self.getParams().SearchQuery + '&count=' + totalNumbers + '&result_type=recent';
-			oauthActions.get(searchUrl, successSearch, fail);
+			oauthActions.get(self.computeSourceUrl(totalNumbers), successSearch, fail);
 		};
 
 		self.getSourceNamespaceManager().manageOAuth('twitter', self.getParams().oauthKey, success, fail);

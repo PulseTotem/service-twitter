@@ -89,4 +89,49 @@ class TwitterUtils extends SourceItf {
 			}
 		}
 	}
+
+	public createTweet(item : any) : Tweet  {
+		var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(this.getParams().InfoDuration));
+
+		var owner:User = this.retrieveTwitterUser(item);
+
+		tweet.setOwner(owner);
+		tweet.setMessage(item.text);
+		tweet.setFavoriteCount(item.favorite_count);
+		tweet.setRetweetCount(item.retweet_count);
+		tweet.setLang(item.lang);
+		var sens:boolean = false;
+		if (item.possibly_sensitive != null) {
+			sens = item.possibly_sensitive;
+		}
+		tweet.setSensitive(sens);
+
+		if (typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
+			item.entities.hashtags.forEach(function (hashtag:any) {
+				var tag:Tag = new Tag(uuid.v1(), 0, new Date(), new Date());
+				tag.setName(hashtag.text);
+
+				tweet.addHashtag(tag);
+			});
+		}
+
+		if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
+			item.entities.media.forEach(function (media:any) {
+				if (media.type == "photo") {
+					var picture:Picture = this.retrievePictureEntity(media);
+
+					tweet.getHashtags().forEach(function (tag) {
+						picture.addTag(tag);
+					});
+
+					picture.setOwner(owner);
+
+					tweet.addPicture(picture);
+					this.removeMediaURLFromTweet(tweet, media);
+				}
+			});
+		}
+
+		return tweet;
+	}
 }
