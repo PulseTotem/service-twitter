@@ -95,6 +95,16 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 		return picture;
 	}
 
+	removeMediaURLFromTweet(tweet : Tweet, media : any) {
+		if (media.url != null && media.url != "undefined") {
+			var index = tweet.getMessage().indexOf(media.url);
+			if (index != -1) {
+				var message = tweet.getMessage().substring(index, media.url.length);
+				tweet.setMessage(message);
+			}
+		}
+	}
+
     /**
      * Retrieve last tweets from search and return the tweets in "TweetList" format.
      *
@@ -162,6 +172,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 								picture.setOwner(owner);
 
 								tweet.addPicture(picture);
+								self.removeMediaURLFromTweet(tweet, media);
 							}
 						});
 					}
