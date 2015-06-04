@@ -15,6 +15,9 @@
 
 /// <reference path="../TwitterNamespaceManager.ts" />
 /// <reference path="../TwitterUtils.ts" />
+var datejs : any = require('datejs');
+
+var uuid : any = require('node-uuid');
 
 class LastTweetsFromSearch extends TwitterUtils {
 

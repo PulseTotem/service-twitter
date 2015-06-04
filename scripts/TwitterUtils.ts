@@ -11,7 +11,11 @@
 /// <reference path="../t6s-core/core-backend/scripts/server/SourceItf.ts" />
 
 /// <reference path="./TwitterNamespaceManager.ts" />
+/// <reference path="../t6s-core/core-backend/libsdef/node-uuid.d.ts" />
 
+var datejs : any = require('datejs');
+
+var uuid : any = require('node-uuid');
 /**
  * Toolbox to manipulate Twitter elements and Tweet InfoType
  */
@@ -32,7 +36,6 @@ class TwitterUtils extends SourceItf {
 		}
 		owner.setLocation(loc);
 		owner.setProfilPicture(twittos.profile_image_url);
-
 		return owner;
 	}
 
@@ -45,7 +48,6 @@ class TwitterUtils extends SourceItf {
 		pictUrl_original.setURL(media.media_url);
 		pictUrl_original.setWidth(media.sizes.medium.w);
 		pictUrl_original.setHeight(media.sizes.medium.h);
-
 		picture.setOriginal(pictUrl_original);
 
 		var pictUrl_small : PictureURL = new PictureURL(media.id_str+"_small");
@@ -75,25 +77,29 @@ class TwitterUtils extends SourceItf {
 		pictUrl_thumb.setHeight(media.sizes.thumb.h);
 
 		picture.setThumb(pictUrl_thumb);
-
 		picture.setOrientation("0");
 		return picture;
 	}
 
 	public removeMediaURLFromTweet(tweet : Tweet, media : any) {
+		Logger.debug("Enter remove media URL")
 		if (media.url != null && media.url != "undefined") {
-			var index = tweet.getMessage().indexOf(media.url);
-			if (index != -1) {
-				var message = tweet.getMessage().substring(index, media.url.length);
+			var oldMessage = tweet.getMessage();
+			var index = oldMessage.indexOf(media.url);
+			if (index !== -1) {
+				Logger.debug("Before substring : "+oldMessage+" and index is : "+index);
+				var message = oldMessage.substr(0, index)+oldMessage.substr(index+media.url.length, oldMessage.length-media.url.length);
+				Logger.debug("After substring : "+message);
 				tweet.setMessage(message);
 			}
 		}
 	}
 
 	public createTweet(item : any) : Tweet  {
-		var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(this.getParams().InfoDuration));
+		var self = this;
+		var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(self.getParams().InfoDuration));
 
-		var owner:User = this.retrieveTwitterUser(item);
+		var owner:User = self.retrieveTwitterUser(item);
 
 		tweet.setOwner(owner);
 		tweet.setMessage(item.text);
@@ -105,6 +111,7 @@ class TwitterUtils extends SourceItf {
 			sens = item.possibly_sensitive;
 		}
 		tweet.setSensitive(sens);
+
 
 		if (typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
 			item.entities.hashtags.forEach(function (hashtag:any) {
@@ -118,20 +125,17 @@ class TwitterUtils extends SourceItf {
 		if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
 			item.entities.media.forEach(function (media:any) {
 				if (media.type == "photo") {
-					var picture:Picture = this.retrievePictureEntity(media);
 
+					var picture:Picture = self.retrievePictureEntity(media);
 					tweet.getHashtags().forEach(function (tag) {
 						picture.addTag(tag);
 					});
-
 					picture.setOwner(owner);
-
 					tweet.addPicture(picture);
-					this.removeMediaURLFromTweet(tweet, media);
+					self.removeMediaURLFromTweet(tweet, media);
 				}
 			});
 		}
-
 		return tweet;
 	}
 }

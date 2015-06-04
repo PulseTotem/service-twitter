@@ -16,6 +16,10 @@
 /// <reference path="../TwitterNamespaceManager.ts" />
 /// <reference path="../TwitterUtils.ts" />
 
+var datejs : any = require('datejs');
+
+var uuid : any = require('node-uuid');
+
 class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 
@@ -41,7 +45,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 			var min_id = Infinity;
 
 			var successSearch = function(result) {
-				var tweetsResult = result.statuses;
+				var tweetsResult = result;
 
 				var tweetList:TweetList = new TweetList();
 
@@ -54,27 +58,23 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 						var item:any = tweets[iTweet];
 
 						min_id = Math.min(min_id, item.id);
-
 						var tweet : Tweet = self.createTweet(item);
 
-						if (typeof(item.retweeted_status) != "undefined" || typeof(item.retweeted_status.id_str) != "undefined") {
-
+						if (typeof(item.retweeted_status) != "undefined") {
+							Logger.debug("Manage retweet and create tweet");
 							var originalTweet : Tweet = self.createTweet(item.retweeted_status);
 							tweet.setOriginalTweet(originalTweet);
 						}
-
 						tweetList.addTweet(tweet);
 
-						if(tweetList.getTweets().length == parseInt(self.getParams().Limit)) {
+						if (tweetList.getTweets().length == parseInt(self.getParams().Limit)) {
 							break;
 						}
-
-						// else, it's a retweet so by pass it ! //TODO : Maybe allow retweets through a param...
 					}
 
-					if(tweetList.getTweets().length < parseInt(self.getParams().Limit) && tweets.length == totalNumbers) {
+					if (tweetList.getTweets().length < parseInt(self.getParams().Limit) && tweets.length == totalNumbers) {
 						var successSearchOlder = function(result) {
-							var olderTweetsResult = result.statuses;
+							var olderTweetsResult = result;
 
 							manageTweetsResult(olderTweetsResult);
 						};
