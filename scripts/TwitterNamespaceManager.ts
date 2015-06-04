@@ -6,13 +6,7 @@
 /// <reference path="../t6s-core/core-backend/scripts/server/SourceNamespaceManager.ts" />
 
 /// <reference path="./sources/LastTweetsFromSearch.ts" />
-
-var datejs : any = require('datejs');
-
-var DateJS : any = <any>Date;
-var uuid : any = require('node-uuid');
-
-var util = require('util');
+/// <reference path="./sources/LastTweetsFromUserTimelineWithRT.ts" />
 
 class TwitterNamespaceManager extends SourceNamespaceManager {
 
@@ -25,31 +19,6 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
     constructor(socket : any) {
         super(socket);
 	    this.addListenerToSocket('LastTweetsFromSearch', function(params : any, self : TwitterNamespaceManager) { (new LastTweetsFromSearch(params, self)) });
+	    this.addListenerToSocket('LastTweetsFromUserTimelineWithRT', function(params : any, self : TwitterNamespaceManager) { (new LastTweetsFromUserTimelineWithRT(params, self)) });
     }
-
-	/*
-	retrievePictureAlbumFromTwitterSearch(params : any, self : TwitterNamespaceManager = null) {
-
-		if(self == null) {
-			self = this;
-		}
-
-		Logger.debug("PictureAlbumFromTwitterSearch Action with params :");
-		Logger.debug(params);
-
-		var fail = function(error) {
-			if(error) {
-				Logger.error(error);
-			}
-		};
-
-		var success = function (info) {
-
-			var searchUrl = '/1.1/search/tweets.json?q=' + params.SearchQuery + '&count=' + params.Limit + '&result_type=recent';
-			oauthActions.get(searchUrl, successSearch, fail);
-		};
-
-		self.manageOAuth('twitter', params.oauthKey, success, fail);
-	}
-	*/
 }
