@@ -82,14 +82,11 @@ class TwitterUtils extends SourceItf {
 	}
 
 	public removeMediaURLFromTweet(tweet : Tweet, media : any) {
-		Logger.debug("Enter remove media URL")
 		if (media.url != null && media.url != "undefined") {
 			var oldMessage = tweet.getMessage();
 			var index = oldMessage.indexOf(media.url);
 			if (index !== -1) {
-				Logger.debug("Before substring : "+oldMessage+" and index is : "+index);
 				var message = oldMessage.substr(0, index)+oldMessage.substr(index+media.url.length, oldMessage.length-media.url.length);
-				Logger.debug("After substring : "+message);
 				tweet.setMessage(message);
 			}
 		}
