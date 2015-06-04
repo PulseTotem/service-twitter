@@ -33,7 +33,9 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
      */
     constructor(socket : any) {
         super(socket);
-        this.addListenerToSocket('LastTweetsFromSearch', this.retrieveLastTweetsFromSearch);
+
+        //this.addListenerToSocket('LastTweetsFromSearch', this.retrieveLastTweetsFromSearch);
+	    this.addListenerToSocket('LastTweetsFromSearch', function(params : any, self : TwitterNamespaceManager = null) { (new LastTweetsFromSearch(params, self)).run() });
     }
 
 	retrieveTwitterUser(item : any) : User {
@@ -124,67 +126,95 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 		};
 
 		var success = function(oauthActions) {
+			var totalNumbers = parseInt(params.Limit) * 3;
+			var min_id = Infinity;
+
 			var successSearch = function(result) {
-				var tweets = result.statuses;
+				var tweetsResult = result.statuses;
 
 				var tweetList:TweetList = new TweetList();
 
 				tweetList.setId(uuid.v1());
 				tweetList.setPriority(0);
-				tweetList.setDurationToDisplay(parseInt(params.InfoDuration)*tweets.length);
 
-				for(var iTweet in tweets) {
-					var item : any = tweets[iTweet];
+				var manageTweetsResult = function(tweets) {
 
-					var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(params.InfoDuration));
+					for (var iTweet in tweets) {
+						var item:any = tweets[iTweet];
 
-					var owner : User = self.retrieveTwitterUser(item);
+						min_id = Math.min(min_id, item.id);
 
-					tweet.setOwner(owner);
-					tweet.setMessage(item.text);
-					tweet.setFavoriteCount(item.favorite_count);
-					tweet.setRetweetCount(item.retweet_count);
-					tweet.setLang(item.lang);
-					var sens : boolean = false;
-					if(item.possibly_sensitive != null) {
-						sens = item.possibly_sensitive;
-					}
-					tweet.setSensitive(sens);
+						if (typeof(item.retweeted_status) == "undefined" || typeof(item.retweeted_status.id_str) == "undefined") {
 
-					if(typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
-						item.entities.hashtags.forEach(function(hashtag : any) {
-							var tag : Tag = new Tag(uuid.v1(), 0, new Date(), new Date());
-							tag.setName(hashtag.text);
+							var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(params.InfoDuration));
 
-							tweet.addHashtag(tag);
-						});
-					}
+							var owner:User = self.retrieveTwitterUser(item);
 
-					if(typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
-						item.entities.media.forEach(function (media : any) {
-							if (media.type == "photo") {
-								var picture : Picture = self.retrievePictureEntity(media);
-
-								tweet.getHashtags().forEach(function(tag) {
-									picture.addTag(tag);
-								});
-
-								picture.setOwner(owner);
-
-								tweet.addPicture(picture);
-								self.removeMediaURLFromTweet(tweet, media);
+							tweet.setOwner(owner);
+							tweet.setMessage(item.text);
+							tweet.setFavoriteCount(item.favorite_count);
+							tweet.setRetweetCount(item.retweet_count);
+							tweet.setLang(item.lang);
+							var sens:boolean = false;
+							if (item.possibly_sensitive != null) {
+								sens = item.possibly_sensitive;
 							}
-						});
+							tweet.setSensitive(sens);
+
+							if (typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
+								item.entities.hashtags.forEach(function (hashtag:any) {
+									var tag:Tag = new Tag(uuid.v1(), 0, new Date(), new Date());
+									tag.setName(hashtag.text);
+
+									tweet.addHashtag(tag);
+								});
+							}
+
+							if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
+								item.entities.media.forEach(function (media:any) {
+									if (media.type == "photo") {
+										var picture:Picture = self.retrievePictureEntity(media);
+
+										tweet.getHashtags().forEach(function (tag) {
+											picture.addTag(tag);
+										});
+
+										picture.setOwner(owner);
+
+										tweet.addPicture(picture);
+										self.removeMediaURLFromTweet(tweet, media);
+									}
+								});
+							}
+							tweetList.addTweet(tweet);
+
+							if(tweetList.getTweets().length == parseInt(params.Limit)) {
+								break;
+							}
+
+						} // else, it's a retweet so by pass it ! //TODO : Maybe allow retweets through a param...
 					}
 
+					if(tweetList.getTweets().length < parseInt(params.Limit) && tweets.length == totalNumbers) {
+						var successSearchOlder = function(result) {
+							var olderTweetsResult = result.statuses;
 
-					tweetList.addTweet(tweet);
-				}
+							manageTweetsResult(olderTweetsResult);
+						};
 
-				self.sendNewInfoToClient(tweetList);
+						var searchOlderUrl = '/1.1/search/tweets.json?q=' + params.SearchQuery + '&count=' + totalNumbers + '&result_type=recent&max_id=' + min_id.toString();
+						oauthActions.get(searchOlderUrl, successSearchOlder, fail);
+					} else {
+						tweetList.setDurationToDisplay(parseInt(params.InfoDuration) * tweetList.getTweets().length);
+
+						self.sendNewInfoToClient(tweetList);
+					}
+				};
+
+				manageTweetsResult(tweetsResult);
 			};
 
-			var searchUrl = '/1.1/search/tweets.json?q=' + params.SearchQuery + '&count=' + params.Limit + '&result_type=recent';
+			var searchUrl = '/1.1/search/tweets.json?q=' + params.SearchQuery + '&count=' + totalNumbers + '&result_type=recent';
 			oauthActions.get(searchUrl, successSearch, fail);
 		};
 
