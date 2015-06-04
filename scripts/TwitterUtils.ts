@@ -8,6 +8,7 @@
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/Picture.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/PictureURL.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/Tag.ts" />
+/// <reference path="../t6s-core/core-backend/scripts/server/SourceItf.ts" />
 
 /// <reference path="./TwitterNamespaceManager.ts" />
 
@@ -20,7 +21,7 @@ class TwitterUtils extends SourceItf {
 		super(params, twitterNamespaceManager);
 	}
 
-	protected retrieveTwitterUser(item : any) : User {
+	public retrieveTwitterUser(item : any) : User {
 		var twittos = item.user;
 		var owner : User = new User(twittos.id_str, 0, new Date(twittos.created_at), new Date());
 		owner.setUsername(twittos.screen_name);
@@ -35,7 +36,7 @@ class TwitterUtils extends SourceItf {
 		return owner;
 	}
 
-	protected retrievePictureEntity(media : any) : Picture {
+	public retrievePictureEntity(media : any) : Picture {
 		var picture : Picture = new Picture(media.id_str, 0, new Date(), new Date());
 		picture.setTitle("");
 		picture.setDescription("");
@@ -79,7 +80,7 @@ class TwitterUtils extends SourceItf {
 		return picture;
 	}
 
-	protected removeMediaURLFromTweet(tweet : Tweet, media : any) {
+	public removeMediaURLFromTweet(tweet : Tweet, media : any) {
 		if (media.url != null && media.url != "undefined") {
 			var index = tweet.getMessage().indexOf(media.url);
 			if (index != -1) {
