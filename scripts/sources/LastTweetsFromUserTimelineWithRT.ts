@@ -25,6 +25,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 	constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
 		super(params, twitterNamespaceManager);
+		this.run();
 	}
 
 	private computeSourceUrl = function (totalNumbers) {
