@@ -3,8 +3,7 @@
  * @author Simon Urli <simon@the6thscreen.fr>
  */
 
-/// <reference path="../t6s-core/core-backend/scripts/server/SourceNamespaceManager.ts" />
-
+/// <reference path="./TwitterUtils.ts" />
 /// <reference path="./sources/LastTweetsFromSearch.ts" />
 /// <reference path="./sources/LastTweetsFromUserTimelineWithRT.ts" />
 
