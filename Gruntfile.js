@@ -221,7 +221,9 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', ['build']);
 
-    grunt.registerTask('init', ['symlink']);
+    grunt.registerTask('init', ['symlink:coreBackend']);
+
+    grunt.registerTask('initJenkins', ['init','symlink:core']);
 
     grunt.registerTask('build', function () {
         grunt.task.run(['clean:package', 'clean:build']);
