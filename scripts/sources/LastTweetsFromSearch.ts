@@ -14,7 +14,7 @@
 /// <reference path="../../t6s-core/core-backend/t6s-core/core/scripts/infotype/Tag.ts" />
 
 /// <reference path="../TwitterNamespaceManager.ts" />
-/// <reference path="../TwitterUtils.ts" />
+
 var datejs : any = require('datejs');
 
 var uuid : any = require('node-uuid');
