@@ -176,13 +176,16 @@ class TwitterUtils extends SourceItf {
 					if (sinceId == null) {
 						newOlderId = tweet.id;
 					}
-					counterHelper.setLastId(tweet.id.toString());
+					if (i == 0) {
+						counterHelper.setLastId(tweet.id.toString());
+					}
 				}
 
 				counterHelper.updateCountersFromTweet(tweet);
 			}
 
 			if (olderTweetsResult.length == 0) {
+				counterHelper.switchOffMining();
 				Logger.debug("No more tweets to mine!");
 			}
 
