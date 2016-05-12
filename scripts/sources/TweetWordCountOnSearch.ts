@@ -21,29 +21,6 @@ class TweetWordCountOnSearch extends TwitterUtils {
         }
     }
 
-    private createAndSendInfoFromCounterHelper(counterHelper : CounterHelper) {
-        var infoDuration : number = parseInt(this.getParams().InfoDuration);
-        Logger.debug("Send counter info with key "+counterHelper.getKey());
-        var tagList : TagList = new TagList(counterHelper.getKey()+"_taglist");
-
-        var dataWords = counterHelper.getWordCount();
-        var allWords = Object.keys(dataWords);
-
-        for (var i = 0; i < allWords.length; i++) {
-            var word = allWords[i];
-            var value = dataWords[word];
-
-            var tag : Tag = new Tag(counterHelper.getKey()+"_"+word);
-            tag.setName(word);
-            tag.setPopularity(value);
-            tagList.addTag(tag);
-        }
-
-        tagList.setDurationToDisplay(infoDuration);
-
-        this.getSourceNamespaceManager().sendNewInfoToClient(tagList);
-    }
-
     public run() {
         var self = this;
 
@@ -57,6 +34,28 @@ class TweetWordCountOnSearch extends TwitterUtils {
 
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
+        var createAndSendInfoFromCounterHelper = function () {
+            Logger.debug("Send counter info with key "+counterHelper.getKey());
+            var tagList : TagList = new TagList(counterHelper.getKey()+"_taglist");
+
+            var dataWords = counterHelper.getWordCount();
+            var allWords = Object.keys(dataWords);
+
+            for (var i = 0; i < allWords.length; i++) {
+                var word = allWords[i];
+                var value = dataWords[word];
+
+                var tag : Tag = new Tag(counterHelper.getKey()+"_"+word);
+                tag.setName(word);
+                tag.setPopularity(value);
+                tagList.addTag(tag);
+            }
+
+            tagList.setDurationToDisplay(infoDuration);
+
+            self.getSourceNamespaceManager().sendNewInfoToClient(tagList);
+        };
+
         var successOAuth = function (oauthActions) {
             var apiUrl = '/1.1/search/tweets.json?q='+searchQuery+"&result_type=recent&count=100";
 
@@ -65,7 +64,7 @@ class TweetWordCountOnSearch extends TwitterUtils {
                 var sinceId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, self.createAndSendInfoFromCounterHelper);
+                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, createAndSendInfoFromCounterHelper);
                 }
 
             } else {
@@ -73,7 +72,7 @@ class TweetWordCountOnSearch extends TwitterUtils {
                 var olderId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl,  startDate, counterHelper, olderId, counterHelper.getLastId(), self.createAndSendInfoFromCounterHelper);
+                    self.mineTwitter(oauthActions, apiUrl,  startDate, counterHelper, olderId, counterHelper.getLastId(), createAndSendInfoFromCounterHelper);
                 }
             }
         };

@@ -21,19 +21,6 @@ class TweetCounterOnSearch extends TwitterUtils {
         }
     }
 
-    private createAndSendInfoFromCounterHelper(counterHelper : CounterHelper) {
-        var infoDuration : number = parseInt(this.getParams().InfoDuration);
-        Logger.debug("Send counter info with key "+counterHelper.getKey());
-        var counterList : CounterList = new CounterList(counterHelper.getKey()+"_list");
-
-        var counter : Counter = new Counter(counterHelper.getKey());
-        counter.setValue(counterHelper.getCounter());
-        counter.setDurationToDisplay(infoDuration);
-
-        counterList.addCounter(counter);
-        this.getSourceNamespaceManager().sendNewInfoToClient(counterList);
-    }
-
     public run() {
         var self = this;
 
@@ -47,6 +34,18 @@ class TweetCounterOnSearch extends TwitterUtils {
 
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
+        var createAndSendInfoFromCounterHelper = function () {
+            Logger.debug("Send counter info with key "+counterHelper.getKey());
+            var counterList : CounterList = new CounterList(counterHelper.getKey()+"_list");
+
+            var counter : Counter = new Counter(counterHelper.getKey());
+            counter.setValue(counterHelper.getCounter());
+            counter.setDurationToDisplay(infoDuration);
+
+            counterList.addCounter(counter);
+            self.getSourceNamespaceManager().sendNewInfoToClient(counterList);
+        };
+
         var successOAuth = function (oauthActions) {
             var apiUrl = '/1.1/search/tweets.json?q='+searchQuery+"&result_type=recent&count=100";
 
@@ -55,7 +54,7 @@ class TweetCounterOnSearch extends TwitterUtils {
                 var sinceId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, self.createAndSendInfoFromCounterHelper);
+                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, createAndSendInfoFromCounterHelper);
                 }
 
             } else {
@@ -63,7 +62,7 @@ class TweetCounterOnSearch extends TwitterUtils {
                 var olderId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl,  startDate, counterHelper, olderId, counterHelper.getLastId(), self.createAndSendInfoFromCounterHelper);
+                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, counterHelper.getLastId(), createAndSendInfoFromCounterHelper);
                 }
             }
         };
