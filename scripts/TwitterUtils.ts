@@ -35,7 +35,8 @@ class TwitterUtils extends SourceItf {
 			loc = twittos.location;
 		}
 		owner.setLocation(loc);
-		owner.setProfilPicture(twittos.profile_image_url);
+		//owner.setProfilPicture(twittos.profile_image_url);
+		owner.setProfilPicture(twittos.profile_image_url.replace(/_normal/g, ''));
 		return owner;
 	}
 
