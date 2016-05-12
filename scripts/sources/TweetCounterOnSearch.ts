@@ -63,8 +63,11 @@ class TweetCounterOnSearch extends SourceItf {
                     var tweet = olderTweetsResult[i];
 
                     var tweetDate = moment(new Date(tweet.created_at));
-                    Logger.debug("Date tweet : "+tweetDate);
-                    Logger.debug("Date limite : "+startDate);
+                    if (i % 20 == 0 || i == olderTweetsResult.length-1) {
+                        Logger.debug("Date tweet (i = "+i+"): "+tweetDate.format());
+                        Logger.debug("Date limite : "+startDate.format());
+                    }
+
                     if (tweetDate.isBefore(startDate)) {
                         self.createAndSendInfoFromCounterHelper(counterHelper, infoDuration);
                         newOlderId = null;
@@ -83,11 +86,15 @@ class TweetCounterOnSearch extends SourceItf {
                     counterHelper.updateCountersFromTweet(tweet);
                 }
 
-                if (newOlderId != null) {
+                if (olderTweetsResult.length == 0) {
+                    Logger.debug("No more tweets to mine!");
+                }
+
+                if (newOlderId != null && olderTweetsResult.length > 0) {
                     mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
                 }
 
-                if (sinceId != null) {
+                if (sinceId != null  && olderTweetsResult.length > 0) {
                     var retrievedSinceId = result.search_metadata.since_id.toString();
                     if (sinceId != retrievedSinceId) {
                         mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
@@ -105,7 +112,7 @@ class TweetCounterOnSearch extends SourceItf {
         };
 
         var successOAuth = function (oauthActions) {
-            var apiUrl = '/1.1/search/tweets.json?q='+searchQuery+"&result_type=recent";
+            var apiUrl = '/1.1/search/tweets.json?q='+searchQuery+"&result_type=recent&count=100";
 
             if (counterHelper.getLastId() == null) {
                 var olderId = null;
