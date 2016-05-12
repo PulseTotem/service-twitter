@@ -6,7 +6,9 @@
 /// <reference path="./TwitterUtils.ts" />
 /// <reference path="./sources/LastTweetsFromSearch.ts" />
 /// <reference path="./sources/LastTweetsFromUserTimelineWithRT.ts" />
-    /// <reference path="./sources/TweetCounterOnSearch.ts" />
+/// <reference path="./sources/TweetCounterOnSearch.ts" />
+/// <reference path="./sources/TweetWordCountOnSearch.ts" />
+/// <reference path="./sources/TweetHashtagCountOnSearch.ts" />
 
 class TwitterNamespaceManager extends SourceNamespaceManager {
 
@@ -21,5 +23,7 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
 	    this.addListenerToSocket('LastTweetsFromSearch', function(params : any, self : TwitterNamespaceManager) { (new LastTweetsFromSearch(params, self)) });
 	    this.addListenerToSocket('LastTweetsFromUserTimelineWithRT', function(params : any, self : TwitterNamespaceManager) { (new LastTweetsFromUserTimelineWithRT(params, self)) });
         this.addListenerToSocket('TweetCounterOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetCounterOnSearch(params, self)) });
+        this.addListenerToSocket('TweetWordCountOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetWordCountOnSearch(params, self)) });
+        this.addListenerToSocket('TweetHashtagCountOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetHashtagCountOnSearch(params, self)) });
     }
 }

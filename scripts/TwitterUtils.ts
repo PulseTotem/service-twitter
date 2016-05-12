@@ -2,6 +2,7 @@
  @author Simon Urli <simon@the6thscreen.fr>
  */
 
+/// <reference path="../t6s-core/core-backend/scripts/Logger.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/TweetList.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/Tweet.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/User.ts" />
@@ -135,5 +136,90 @@ class TwitterUtils extends SourceItf {
 			});
 		}
 		return tweet;
+	}
+
+	public mineTwitter(oauthActions : any, originalApiUrl : string, startDate : any, counterHelper : CounterHelper, olderId : number, sinceId : string, callbackSendInfo : Function, iterationNumber : number = 0) {
+		Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId+" Iteration number : "+iterationNumber);
+
+		var self = this;
+		counterHelper.switchOnMining();
+		var apiUrl = originalApiUrl;
+
+		if (olderId != null) {
+			apiUrl += "&max_id="+olderId;
+		}
+
+		var newOlderId = olderId;
+
+		var successSearchOlder = function (result) {
+			var olderTweetsResult = result.statuses;
+
+			for (var i = 0; i < olderTweetsResult.length; i++) {
+				var tweet = olderTweetsResult[i];
+
+				var tweetDate = moment(new Date(tweet.created_at));
+				if (i % 20 == 0 || i == olderTweetsResult.length-1) {
+					Logger.debug("Date tweet (i = "+i+"): "+tweetDate.format());
+					Logger.debug("Date limite : "+startDate.format());
+				}
+
+				if (tweetDate.isBefore(startDate)) {
+					counterHelper.switchOffMining();
+					callbackSendInfo(counterHelper);
+					newOlderId = null;
+					return;
+				}
+
+				if (olderId != null) {
+					newOlderId = Math.min(olderId, tweet.id);
+				} else {
+					if (sinceId == null) {
+						newOlderId = tweet.id;
+					}
+					counterHelper.setLastId(tweet.id.toString());
+				}
+
+				counterHelper.updateCountersFromTweet(tweet);
+			}
+
+			if (olderTweetsResult.length == 0) {
+				Logger.debug("No more tweets to mine!");
+			}
+
+
+			var recursivityWithTimeout = function () {
+				if (iterationNumber == 20) {
+					Logger.debug("Pause in requests...");
+					setTimeout(function () {
+						self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, sinceId, callbackSendInfo);
+					}, 180000);
+				} else {
+					self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, sinceId, callbackSendInfo, iterationNumber++);
+				}
+			};
+
+			if (newOlderId != null && olderTweetsResult.length > 0) {
+				recursivityWithTimeout();
+			}
+
+			if (sinceId != null  && olderTweetsResult.length > 0) {
+				var retrievedSinceId = result.search_metadata.since_id.toString();
+				if (sinceId != retrievedSinceId) {
+					recursivityWithTimeout();
+				} else {
+					counterHelper.switchOffMining();
+					callbackSendInfo(counterHelper);
+				}
+			}
+		};
+
+		var failSearchOlder = function (err) {
+			counterHelper.switchOffMining();
+			Logger.error("Error while getting older tweets with URL "+apiUrl);
+			Logger.debug(err);
+		};
+
+
+		oauthActions.get(apiUrl, successSearchOlder, failSearchOlder);
 	}
 }

@@ -6,12 +6,12 @@
 /// <reference path="../TwitterUtils.ts" />
 
 /// <reference path="../core/CounterHelper.ts" />
-/// <reference path="../../t6s-core/core-backend/t6s-core/core/scripts/infotype/Counter.ts" />
-/// <reference path="../../t6s-core/core-backend/t6s-core/core/scripts/infotype/CounterList.ts" />
+/// <reference path="../../t6s-core/core-backend/t6s-core/core/scripts/infotype/Tag.ts" />
+/// <reference path="../../t6s-core/core-backend/t6s-core/core/scripts/infotype/TagList.ts" />
 
 var moment = require("moment");
 
-class TweetCounterOnSearch extends TwitterUtils {
+class TweetHashtagCountOnSearch extends TwitterUtils {
 
     constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
         super(params, twitterNamespaceManager);
@@ -24,14 +24,24 @@ class TweetCounterOnSearch extends TwitterUtils {
     private createAndSendInfoFromCounterHelper(counterHelper : CounterHelper) {
         var infoDuration : number = parseInt(this.getParams().InfoDuration);
         Logger.debug("Send counter info with key "+counterHelper.getKey());
-        var counterList : CounterList = new CounterList(counterHelper.getKey()+"_list");
+        var tagList : TagList = new TagList(counterHelper.getKey()+"_taglist");
 
-        var counter : Counter = new Counter(counterHelper.getKey());
-        counter.setValue(counterHelper.getCounter());
-        counter.setDurationToDisplay(infoDuration);
+        var dataWords = counterHelper.getTagCount();
+        var allWords = Object.keys(dataWords);
 
-        counterList.addCounter(counter);
-        this.getSourceNamespaceManager().sendNewInfoToClient(counterList);
+        for (var i = 0; i < allWords.length; i++) {
+            var word = allWords[i];
+            var value = dataWords[word];
+
+            var tag : Tag = new Tag(counterHelper.getKey()+"_"+word);
+            tag.setName(word);
+            tag.setPopularity(value);
+            tagList.addTag(tag);
+        }
+
+        tagList.setDurationToDisplay(infoDuration);
+
+        this.getSourceNamespaceManager().sendNewInfoToClient(tagList);
     }
 
     public run() {

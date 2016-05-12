@@ -67,8 +67,12 @@ class CounterHelper {
         }
     }
 
-    public toogleIsMining() {
-        this._isMining = !this._isMining;
+    public switchOnMining() {
+        this._isMining = true;
+    }
+
+    public switchOffMining() {
+        this._isMining = false;
     }
 
     public isMining() {
