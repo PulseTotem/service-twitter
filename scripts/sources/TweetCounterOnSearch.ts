@@ -22,6 +22,7 @@ class TweetCounterOnSearch extends SourceItf {
     }
 
     private createAndSendInfoFromCounterHelper(counterHelper : CounterHelper, infoDuration : number) {
+        Logger.debug("Send counter info with key "+counterHelper.getKey());
         var counterList : CounterList = new CounterList(counterHelper.getKey()+"_list");
 
         var counter : Counter = new Counter(counterHelper.getKey());
@@ -62,6 +63,8 @@ class TweetCounterOnSearch extends SourceItf {
                     var tweet = olderTweetsResult[i];
 
                     var tweetDate = moment(new Date(tweet.created_at));
+                    Logger.debug("Date tweet : "+tweetDate);
+                    Logger.debug("Date limite : "+startDate);
                     if (tweetDate.isBefore(startDate)) {
                         self.createAndSendInfoFromCounterHelper(counterHelper, infoDuration);
                         newOlderId = null;
@@ -84,9 +87,11 @@ class TweetCounterOnSearch extends SourceItf {
                     mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
                 }
 
-                var retrievedSinceId = result.search_metadata.since_id.toString();
-                if (sinceId != retrievedSinceId) {
-                    mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
+                if (sinceId != null) {
+                    var retrievedSinceId = result.search_metadata.since_id.toString();
+                    if (sinceId != retrievedSinceId) {
+                        mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
+                    }
                 }
             };
 
