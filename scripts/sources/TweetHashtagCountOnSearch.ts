@@ -54,6 +54,7 @@ class TweetHashtagCountOnSearch extends TwitterUtils {
             tagList.setDurationToDisplay(infoDuration);
 
             self.getSourceNamespaceManager().sendNewInfoToClient(tagList);
+            counterHelper.pushStat(self.getSourceNamespaceManager());
         };
 
         var successOAuth = function (oauthActions) {

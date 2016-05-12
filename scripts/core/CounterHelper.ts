@@ -3,6 +3,8 @@
  */
 
 /// <reference path="../../t6s-core/core-backend/scripts/Logger.ts" />
+/// <reference path="../../t6s-core/core-backend/scripts/stats/StatObject.ts" />
+/// <reference path="../../t6s-core/core-backend/scripts/RestClient.ts" />
 
 var moment = require("moment");
 
@@ -178,9 +180,9 @@ class CounterHelper {
         }
     }
 
-    public toJSON() : any {
+    private toJSON() : any {
         return {
-            "id": this._key,
+            "key": this._key,
             "lastUpdate": this._lastUpdate,
             "query": this._searchQuery,
             "startDate": this._dateLimit,
@@ -190,6 +192,28 @@ class CounterHelper {
             "tagCount": this._tagCount,
             "rate": this.getRate()
         };
+    }
+
+    public pushStat(sourceNamespaceManager : SourceNamespaceManager) {
+        var stat : StatObject = new StatObject();
+        stat.setCollection("service-twitter-counter");
+        stat.setSocketId(sourceNamespaceManager.socket.id);
+        stat.setIp(sourceNamespaceManager.getIP());
+        stat.setSDIId(sourceNamespaceManager.getProfilId().toString());
+        stat.setProfilId(sourceNamespaceManager.getSDIId().toString());
+        stat.setHash(sourceNamespaceManager.getHashProfil());
+
+        var data = this.toJSON();
+
+        stat.setData(data);
+
+        var urlPostStat = ServiceConfig.getStatHost()+"create";
+
+        RestClient.post(urlPostStat, stat.toJSON(), function () {
+            Logger.debug("Stat has been posted.");
+        }, function (err) {
+            Logger.debug("Error when posting the stat on the following URL: "+urlPostStat);
+        });
     }
 
 }

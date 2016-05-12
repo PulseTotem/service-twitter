@@ -87,11 +87,8 @@ module.exports = function (grunt) {
               files: 	[{'build/package.json': 'package.json'}]
             },
 
-            heroku: {
-              files: 	[{expand: true, cwd: 'build', src: ['**'], dest: 'heroku'}]
-            },
-            herokuProcfile: {
-              files: 	[{expand: true, cwd: 't6s-core/core-backend', src: ['Procfile'], dest: 'heroku'}]
+            buildServiceConfigFile: {
+                files: 	[{'build/js/service_config.json': 'scripts/core/service_config.json'}]
             }
         },
 
@@ -222,13 +219,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', function () {
         grunt.task.run(['clean:package', 'clean:build']);
 
-        grunt.task.run(['env:build','update_json:packageBuild', 'copy:buildPackageBak', 'copy:buildPackageReplace', 'npm-install', 'copy:keepPackage', 'copy:buildPackageReinit', 'typescript:build', 'clean:package']);
-    });
-
-    grunt.registerTask('heroku', function () {
-      grunt.task.run(['clean:heroku']);
-
-      grunt.task.run(['build', 'update_json:packageHeroku', 'copy:heroku', 'copy:herokuProcfile']);
+        grunt.task.run(['env:build','update_json:packageBuild', 'copy:buildPackageBak', 'copy:buildPackageReplace', 'npm-install', 'copy:keepPackage', 'copy:buildPackageReinit', 'typescript:build', 'copy:buildServiceConfigFile', 'clean:package']);
     });
 
     grunt.registerTask('develop', ['build', 'express:build', 'watch']);

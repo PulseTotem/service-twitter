@@ -44,6 +44,7 @@ class TweetCounterOnSearch extends TwitterUtils {
 
             counterList.addCounter(counter);
             self.getSourceNamespaceManager().sendNewInfoToClient(counterList);
+            counterHelper.pushStat(self.getSourceNamespaceManager());
         };
 
         var successOAuth = function (oauthActions) {
