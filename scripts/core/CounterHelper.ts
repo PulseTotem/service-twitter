@@ -112,12 +112,16 @@ class CounterHelper {
     }
 
     public incrementWord(word : string) {
-        if (this._wordCount[word]) {
-            this._wordCount[word]++;
-        } else {
-            this._wordCount[word] = 1;
+        if (word.length > 1) {
+            word = word.replace(/\./g,"_");
+
+            if (this._wordCount[word]) {
+                this._wordCount[word]++;
+            } else {
+                this._wordCount[word] = 1;
+            }
+            this._lastUpdate = moment();
         }
-        this._lastUpdate = moment();
     }
 
     public incrementTag(tag : string) {
