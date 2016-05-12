@@ -43,7 +43,7 @@ class TweetCounterOnSearch extends SourceItf {
         var oAuthKey : string = this.getParams().oauthKey;
 
 
-        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDate);
+        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
         var mineTwitter = function (oauthActions : any, originalApiUrl : string, olderId : number, sinceId : string) {
             var apiUrl = originalApiUrl;
@@ -120,6 +120,6 @@ class TweetCounterOnSearch extends SourceItf {
         };
 
 
-        self.getSourceNamespaceManager().manageOAuth('twitter', self.getParams().oauthKey, successOAuth, failOAuth);
+        self.getSourceNamespaceManager().manageOAuth('twitter', oAuthKey, successOAuth, failOAuth);
     }
 }
