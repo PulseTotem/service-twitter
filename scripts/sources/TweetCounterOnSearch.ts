@@ -23,6 +23,7 @@ class TweetCounterOnSearch extends SourceItf {
 
     private createAndSendInfoFromCounterHelper(counterHelper : CounterHelper, infoDuration : number) {
         Logger.debug("Send counter info with key "+counterHelper.getKey());
+        counterHelper.toogleIsMining();
         var counterList : CounterList = new CounterList(counterHelper.getKey()+"_list");
 
         var counter : Counter = new Counter(counterHelper.getKey());
@@ -46,7 +47,7 @@ class TweetCounterOnSearch extends SourceItf {
 
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
-        var mineTwitter = function (oauthActions : any, originalApiUrl : string, olderId : number, sinceId : string) {
+        var mineTwitter = function (oauthActions : any, originalApiUrl : string, olderId : number, sinceId : string, iterationNumber : number = 0) {
             Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId);
             var apiUrl = originalApiUrl;
 
@@ -90,14 +91,25 @@ class TweetCounterOnSearch extends SourceItf {
                     Logger.debug("No more tweets to mine!");
                 }
 
+
+                var recursivityWithTimeout = function () {
+                    if (iterationNumber == 20) {
+                        setTimeout(function () {
+                            mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
+                        }, 60000);
+                    } else {
+                        mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId, iterationNumber++);
+                    }
+                };
+
                 if (newOlderId != null && olderTweetsResult.length > 0) {
-                    mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
+                    recursivityWithTimeout();
                 }
 
                 if (sinceId != null  && olderTweetsResult.length > 0) {
                     var retrievedSinceId = result.search_metadata.since_id.toString();
                     if (sinceId != retrievedSinceId) {
-                        mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
+                        recursivityWithTimeout();
                     }
                 }
             };
@@ -118,12 +130,19 @@ class TweetCounterOnSearch extends SourceItf {
                 var olderId = null;
                 var sinceId = null;
 
-                mineTwitter(oauthActions, apiUrl, olderId, sinceId);
+                if (!counterHelper.isMining()) {
+                    counterHelper.toogleIsMining();
+                    mineTwitter(oauthActions, apiUrl, olderId, sinceId);
+                }
+
             } else {
                 apiUrl += "&since_id="+counterHelper.getLastId();
                 var olderId = null;
 
-                mineTwitter(oauthActions, apiUrl, olderId, counterHelper.getLastId());
+                if (!counterHelper.isMining()) {
+                    counterHelper.toogleIsMining();
+                    mineTwitter(oauthActions, apiUrl, olderId, counterHelper.getLastId());
+                }
             }
         };
 

@@ -14,6 +14,7 @@ class CounterHelper {
     private _searchQuery : string;
     private _dateLimit : string;
 
+    private _isMining : boolean;
     private _counter : number;
     private _lastId : string;
     private _wordCount : any;
@@ -31,6 +32,7 @@ class CounterHelper {
         this._tagCount = {};
         this._lastDatesForRate = [];
         this._lastUpdate = moment();
+        this._isMining = false;
     }
 
     public static getCounter(searchQuery : string, dateLimit : string) : CounterHelper {
@@ -63,6 +65,14 @@ class CounterHelper {
         for (var i = 0; i < keyToDelete.length; i++) {
             delete (CounterHelper.counters[keyToDelete[i]]);
         }
+    }
+
+    public toogleIsMining() {
+        this._isMining = !this._isMining;
+    }
+
+    public isMining() {
+        return this._isMining;
     }
 
     public getCounter() : number {
