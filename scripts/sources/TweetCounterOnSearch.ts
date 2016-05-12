@@ -48,7 +48,7 @@ class TweetCounterOnSearch extends SourceItf {
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
         var mineTwitter = function (oauthActions : any, originalApiUrl : string, olderId : number, sinceId : string, iterationNumber : number = 0) {
-            Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId);
+            Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId+" Iteration number : "+iterationNumber);
             var apiUrl = originalApiUrl;
 
             if (olderId != null) {
@@ -94,9 +94,10 @@ class TweetCounterOnSearch extends SourceItf {
 
                 var recursivityWithTimeout = function () {
                     if (iterationNumber == 20) {
+                        Logger.debug("Pause in requests...");
                         setTimeout(function () {
                             mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId);
-                        }, 60000);
+                        }, 180000);
                     } else {
                         mineTwitter(oauthActions, originalApiUrl, newOlderId, sinceId, iterationNumber++);
                     }
@@ -110,6 +111,8 @@ class TweetCounterOnSearch extends SourceItf {
                     var retrievedSinceId = result.search_metadata.since_id.toString();
                     if (sinceId != retrievedSinceId) {
                         recursivityWithTimeout();
+                    } else {
+                        self.createAndSendInfoFromCounterHelper(counterHelper, infoDuration);
                     }
                 }
             };
