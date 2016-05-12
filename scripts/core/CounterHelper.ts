@@ -182,15 +182,15 @@ class CounterHelper {
 
     private toJSON() : any {
         return {
-            "key": this._key,
-            "lastUpdate": this._lastUpdate,
-            "query": this._searchQuery,
-            "startDate": this._dateLimit,
-            "counter": this._counter,
-            "lastId": this._lastId,
-            "wordCount": this._wordCount,
-            "tagCount": this._tagCount,
-            "rate": this.getRate()
+            key: this._key,
+            lastUpdate: this._lastUpdate,
+            query: this._searchQuery,
+            startDate: this._dateLimit,
+            counter: this._counter,
+            lastId: this._lastId,
+            wordCount: this._wordCount,
+            tagCount: this._tagCount,
+            rate: this.getRate()
         };
     }
 
@@ -213,6 +213,8 @@ class CounterHelper {
             Logger.debug("Stat has been posted.");
         }, function (err) {
             Logger.debug("Error when posting the stat on the following URL: "+urlPostStat);
+            Logger.debug("Object send:");
+            Logger.debug(stat);
         });
     }
 
