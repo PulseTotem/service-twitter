@@ -30,6 +30,7 @@ class CounterHelper {
         this._wordCount = {};
         this._tagCount = {};
         this._lastDatesForRate = [];
+        this._lastUpdate = moment();
     }
 
     public static getCounter(searchQuery : string, dateLimit : string) : CounterHelper {
