@@ -16,7 +16,7 @@ class CounterHelper {
 
     private _isMining : boolean;
     private _counter : number;
-    private _lastId : string;
+    private _lastId : number;
     private _wordCount : any;
     private _tagCount : any;
     private _lastUpdate : any;
@@ -27,7 +27,7 @@ class CounterHelper {
         this._dateLimit = date;
         this._key = key;
         this._counter = 0;
-        this._lastId = null;
+        this._lastId = 0;
         this._wordCount = {};
         this._tagCount = {};
         this._lastDatesForRate = [];
@@ -83,7 +83,7 @@ class CounterHelper {
         return this._counter;
     }
 
-    public getLastId() : string {
+    public getLastId() : number {
         return this._lastId;
     }
 
@@ -99,7 +99,7 @@ class CounterHelper {
         return this._key;
     }
 
-    public setLastId(lastId : string) {
+    public setLastId(lastId : number) {
         this._lastId = lastId;
         this._lastUpdate = moment();
     }
@@ -172,6 +172,10 @@ class CounterHelper {
 
         var dateInSecond = moment(new Date(tweet.created_at)).unix();
         this.pushDate(dateInSecond);
+
+        if (tweet.id > this._lastId) {
+            this.setLastId(tweet.id);
+        }
     }
 
     public toJSON() : any {
