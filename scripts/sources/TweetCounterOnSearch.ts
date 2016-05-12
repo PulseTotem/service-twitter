@@ -46,6 +46,7 @@ class TweetCounterOnSearch extends SourceItf {
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
 
         var mineTwitter = function (oauthActions : any, originalApiUrl : string, olderId : number, sinceId : string) {
+            Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId);
             var apiUrl = originalApiUrl;
 
             if (olderId != null) {

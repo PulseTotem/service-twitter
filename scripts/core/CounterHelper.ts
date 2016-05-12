@@ -53,7 +53,7 @@ class CounterHelper {
         for (var key in CounterHelper.counters) {
             var counter = CounterHelper.counters[key];
 
-            if (counter._lastUpdate.before(dateLimit)) {
+            if (counter._lastUpdate.isBefore(dateLimit)) {
                 Logger.debug("Delete counter with key: "+key);
                 keyToDelete.push(key);
             }
