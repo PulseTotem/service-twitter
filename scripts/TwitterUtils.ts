@@ -175,7 +175,7 @@ class TwitterUtils extends SourceItf {
 				if (olderId != null) {
 					newOlderId = Math.min(olderId, tweet.id);
 				} else {
-					if (sinceId == null) {
+					if (sinceId == null || sinceId == 0) {
 						newOlderId = tweet.id;
 					}
 				}
@@ -192,7 +192,7 @@ class TwitterUtils extends SourceItf {
 			var newSinceId = sinceId;
 			var retrievedSinceId = result.search_metadata.since_id;
 
-			if (sinceId != null && retrievedSinceId != sinceId) {
+			if (sinceId != null && sinceId != 0 && retrievedSinceId != sinceId) {
 				newSinceId = lastOlderId;
 				newOlderId = retrievedSinceId;
 			}
@@ -214,7 +214,7 @@ class TwitterUtils extends SourceItf {
 				recursivityWithTimeout();
 			}
 
-			if (sinceId != null  && olderTweetsResult.length > 0) {
+			if (sinceId != null && sinceId != 0 && olderTweetsResult.length > 0) {
 
 				if (sinceId != retrievedSinceId) {
 					recursivityWithTimeout();

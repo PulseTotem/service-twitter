@@ -52,7 +52,7 @@ class TweetCounterOnSearch extends TwitterUtils {
         var successOAuth = function (oauthActions) {
             var apiUrl = '/1.1/search/tweets.json?q='+searchQuery+"&result_type=recent&count=100";
 
-            if (counterHelper.getLastId() == null) {
+            if (counterHelper.getLastId() == 0) {
                 var olderId = null;
                 var sinceId = null;
 
