@@ -120,7 +120,7 @@ class CounterHelper {
     }
 
     public incrementWord(word : string) {
-        if (word.length > 1) {
+        if (word.length > 1 && word != "RT") {
             word = word.replace(/\./g,"_");
 
             if (this._wordCount[word]) {
