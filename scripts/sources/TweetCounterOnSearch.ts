@@ -40,6 +40,8 @@ class TweetCounterOnSearch extends TwitterUtils {
 
             var counter : Counter = new Counter(counterHelper.getKey());
             counter.setValue(counterHelper.getCounter());
+            counter.setQuery(counterHelper.getSearchQuery());
+            counter.setSince(startDate.toDate());
             counter.setDurationToDisplay(infoDuration);
 
             counterList.addCounter(counter);

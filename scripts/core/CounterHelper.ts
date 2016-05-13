@@ -101,6 +101,14 @@ class CounterHelper {
         return this._key;
     }
 
+    public getSearchQuery() : string {
+        return this._searchQuery;
+    }
+
+    public getDateLimit() : string {
+        return this._dateLimit;
+    }
+
     public setLastId(lastId : number) {
         this._lastId = lastId;
         this._lastUpdate = moment();
