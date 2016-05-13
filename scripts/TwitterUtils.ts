@@ -186,6 +186,7 @@ class TwitterUtils extends SourceItf {
 			if (olderTweetsResult.length == 0) {
 				counterHelper.switchOffMining();
 				Logger.debug("No more tweets to mine!");
+				callbackSendInfo();
 			}
 
 			var newSinceId = sinceId;
