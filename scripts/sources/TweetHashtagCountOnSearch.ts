@@ -52,6 +52,8 @@ class TweetHashtagCountOnSearch extends TwitterUtils {
             }
 
             tagList.setDurationToDisplay(infoDuration);
+            tagList.setQuery(counterHelper.getSearchQuery());
+            tagList.setSince(startDate);
 
             self.getSourceNamespaceManager().sendNewInfoToClient(tagList);
             counterHelper.pushStat(self.getSourceNamespaceManager());
