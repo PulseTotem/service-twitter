@@ -91,7 +91,7 @@ class CounterHelper {
 
     private getObjectCount(tab : any) : any {
         var result = {};
-        var allKeys = tab.keys();
+        var allKeys = Object.keys(tab);
         var biggestKeys = allKeys.sort(function (i,j) {return tab[j]-tab[i]; }).slice(0,100);
         for (var i = 0; i < biggestKeys.length; i++) {
             result[biggestKeys[i]] = tab[biggestKeys[i]];
