@@ -41,7 +41,7 @@ class CounterHelper {
         CounterHelper.cleanCounters();
 
         var dateStr = dateLimit.format('DDMMYYhhmm');
-        var key = searchQuery+"_"+dateLimit+"RT"+includeRT.toString();
+        var key = searchQuery+"_"+dateStr+"RT"+includeRT.toString();
 
         if (CounterHelper.counters[key]) {
             return CounterHelper.counters[key];
