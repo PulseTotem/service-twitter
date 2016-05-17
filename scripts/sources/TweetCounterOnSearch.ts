@@ -16,7 +16,7 @@ class TweetCounterOnSearch extends TwitterUtils {
     constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
         super(params, twitterNamespaceManager);
 
-        if (this.checkParams(["Limit","InfoDuration","SearchQuery","StartDate", "oauthKey"])) {
+        if (this.checkParams(["Limit","InfoDuration","SearchQuery","StartDate", "IncludeRT", "oauthKey"])) {
             this.run();
         }
     }
@@ -30,9 +30,10 @@ class TweetCounterOnSearch extends TwitterUtils {
         var startDate : any = moment(parseInt(this.getParams().StartDate));
         var startDateStr : string = startDate.format();
         var oAuthKey : string = this.getParams().oauthKey;
+        var includeRT : boolean = (this.getParams().IncludeRT == "true");
 
 
-        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr);
+        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr, includeRT);
 
         var createAndSendInfoFromCounterHelper = function () {
             Logger.debug("Send counter info with key "+counterHelper.getKey());
@@ -57,7 +58,7 @@ class TweetCounterOnSearch extends TwitterUtils {
                 var sinceId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, createAndSendInfoFromCounterHelper, 0);
+                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, sinceId, includeRT, createAndSendInfoFromCounterHelper, 0);
                 }
 
             } else {
@@ -65,7 +66,7 @@ class TweetCounterOnSearch extends TwitterUtils {
                 var olderId = null;
 
                 if (!counterHelper.isMining()) {
-                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, counterHelper.getLastId(), createAndSendInfoFromCounterHelper, 0);
+                    self.mineTwitter(oauthActions, apiUrl, startDate, counterHelper, olderId, counterHelper.getLastId(), includeRT, createAndSendInfoFromCounterHelper, 0);
                 }
             }
         };

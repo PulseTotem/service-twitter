@@ -37,9 +37,9 @@ class CounterHelper {
         this._isMining = false;
     }
 
-    public static getCounter(searchQuery : string, dateLimit : string) : CounterHelper {
+    public static getCounter(searchQuery : string, dateLimit : string, includeRT : boolean) : CounterHelper {
         CounterHelper.cleanCounters();
-        var key = searchQuery+dateLimit;
+        var key = searchQuery+dateLimit+"RT"+includeRT.toString();
 
         if (CounterHelper.counters[key]) {
             return CounterHelper.counters[key];
@@ -89,12 +89,23 @@ class CounterHelper {
         return this._lastId;
     }
 
+    private getObjectCount(tab : any) : any {
+        var result = {};
+        var allKeys = tab.keys();
+        var biggestKeys = allKeys.sort(function (i,j) {return tab[j]-tab[i]; }).slice(0,100);
+        for (var i = 0; i < biggestKeys.length; i++) {
+            result[biggestKeys[i]] = tab[biggestKeys[i]];
+        }
+
+        return result;
+    }
+
     public getWordCount() : any {
-        return this._wordCount;
+        return this.getObjectCount(this._wordCount);
     }
 
     public getTagCount() : any {
-        return this._tagCount;
+        return this.getObjectCount(this._tagCount);
     }
 
     public getKey() : string {
@@ -167,28 +178,31 @@ class CounterHelper {
         return Math.round(60 / averageTweetBySecond);
     }
 
-    public updateCountersFromTweet(tweet : any) {
-        this.incrementCounter();
+    public updateCountersFromTweet(tweet : any, countRT : boolean) {
 
-        var text = tweet.text;
+        if (typeof(tweet.retweeted_status) == "undefined" || typeof(tweet.retweeted_status.id_str) == "undefined" || countRT) {
+            this.incrementCounter();
 
-        var allWords = text.trim().split(" ");
+            var text = tweet.text;
 
-        for (var i = 0; i < allWords.length; i++) {
-            this.incrementWord(allWords[i]);
-        }
+            var allWords = text.trim().split(" ");
 
-        if (typeof(tweet.entities) != "undefined" && typeof(tweet.entities.hashtags) != "undefined") {
-            for (var i = 0; i < tweet.entities.hashtags.length; i++) {
-                this.incrementTag(tweet.entities.hashtags[i].text);
+            for (var i = 0; i < allWords.length; i++) {
+                this.incrementWord(allWords[i]);
             }
-        }
 
-        var dateInSecond = moment(new Date(tweet.created_at)).unix();
-        this.pushDate(dateInSecond);
+            if (typeof(tweet.entities) != "undefined" && typeof(tweet.entities.hashtags) != "undefined") {
+                for (var i = 0; i < tweet.entities.hashtags.length; i++) {
+                    this.incrementTag(tweet.entities.hashtags[i].text);
+                }
+            }
 
-        if (tweet.id > this._lastId) {
-            this.setLastId(tweet.id);
+            var dateInSecond = moment(new Date(tweet.created_at)).unix();
+            this.pushDate(dateInSecond);
+
+            if (tweet.id > this._lastId) {
+                this.setLastId(tweet.id);
+            }
         }
     }
 
@@ -200,8 +214,8 @@ class CounterHelper {
             startDate: this._dateLimit,
             counter: this._counter,
             lastId: this._lastId,
-            wordCount: this._wordCount,
-            tagCount: this._tagCount,
+            wordCount: this.getWordCount(),
+            tagCount: this.getTagCount(),
             rate: this.getRate()
         };
     }

@@ -138,7 +138,7 @@ class TwitterUtils extends SourceItf {
 		return tweet;
 	}
 
-	public mineTwitter(oauthActions : any, originalApiUrl : string, startDate : any, counterHelper : CounterHelper, olderId : number, sinceId : number, callbackSendInfo : Function, iterationNumber) {
+	public mineTwitter(oauthActions : any, originalApiUrl : string, startDate : any, counterHelper : CounterHelper, olderId : number, sinceId : number, countRT : boolean, callbackSendInfo : Function, iterationNumber) {
 		Logger.debug("Mine twitter with url: "+originalApiUrl+", olderId : "+olderId+" and sinceId : "+sinceId+". Last id :"+counterHelper.getLastId()+" Iteration number : "+iterationNumber);
 
 		var self = this;
@@ -180,7 +180,7 @@ class TwitterUtils extends SourceItf {
 					}
 				}
 
-				counterHelper.updateCountersFromTweet(tweet);
+				counterHelper.updateCountersFromTweet(tweet, countRT);
 			}
 
 			if (olderTweetsResult.length == 0) {
@@ -202,11 +202,11 @@ class TwitterUtils extends SourceItf {
 				if (iterationNumber == 20) {
 					Logger.debug("Pause in requests...");
 					setTimeout(function () {
-						self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, newSinceId, callbackSendInfo, 0);
+						self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, newSinceId, countRT, callbackSendInfo, 0);
 					}, 180000);
 				} else {
 					var newIterationNumber = iterationNumber+1;
-					self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, newSinceId, callbackSendInfo, newIterationNumber);
+					self.mineTwitter(oauthActions, originalApiUrl, startDate, counterHelper, newOlderId, newSinceId, countRT, callbackSendInfo, newIterationNumber);
 				}
 			};
 
