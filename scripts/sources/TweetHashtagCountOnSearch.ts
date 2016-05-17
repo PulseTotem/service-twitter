@@ -33,7 +33,7 @@ class TweetHashtagCountOnSearch extends TwitterUtils {
         var includeRT : boolean = (this.getParams().IncludeRT == "true");
 
 
-        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDateStr, includeRT);
+        var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDate, includeRT);
 
         var createAndSendInfoFromCounterHelper = function () {
             Logger.debug("Send counter info with key "+counterHelper.getKey());

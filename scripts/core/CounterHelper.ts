@@ -37,9 +37,11 @@ class CounterHelper {
         this._isMining = false;
     }
 
-    public static getCounter(searchQuery : string, dateLimit : string, includeRT : boolean) : CounterHelper {
+    public static getCounter(searchQuery : string, dateLimit : any, includeRT : boolean) : CounterHelper {
         CounterHelper.cleanCounters();
-        var key = searchQuery+dateLimit+"RT"+includeRT.toString();
+
+        var dateStr = dateLimit.format('DDMMYYhhmm');
+        var key = searchQuery+"_"+dateLimit+"RT"+includeRT.toString();
 
         if (CounterHelper.counters[key]) {
             return CounterHelper.counters[key];
