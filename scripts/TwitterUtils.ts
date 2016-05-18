@@ -234,4 +234,8 @@ class TwitterUtils extends SourceItf {
 
 		oauthActions.get(apiUrl, successSearchOlder, failSearchOlder);
 	}
+
+	public manageQuery(query : string) : string {
+		return encodeURIComponent(query);
+	}
 }

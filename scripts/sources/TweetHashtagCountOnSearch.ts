@@ -26,7 +26,7 @@ class TweetHashtagCountOnSearch extends TwitterUtils {
 
         var limit : number = parseInt(this.getParams().Limit);
         var infoDuration : number = parseInt(this.getParams().InfoDuration);
-        var searchQuery : string = this.getParams().SearchQuery;
+        var searchQuery : string = this.manageQuery(this.getParams().SearchQuery);
         var startDate : any = moment(parseInt(this.getParams().StartDate));
         var startDateStr : string = startDate.format();
         var oAuthKey : string = this.getParams().oauthKey;
