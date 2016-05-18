@@ -133,13 +133,22 @@ class CounterHelper {
     }
 
     public incrementWord(word : string) {
-        if (word.length > 1 && word != "RT") {
-            word = word.replace(/\./g,"_");
+        var filterWord = [
+            "rt", "le", "la", "les", "au", "à", "dans", "en", "pour", "car", "ou",
+            "ni", "mais", "donc", "et", "c'est", "ce", "ça", "ceci", "tous", "tout",
+            "où", "un", "une", "que", "pas", "the"
+        ];
 
-            if (this._wordCount[word]) {
-                this._wordCount[word]++;
+        var wordToPush = word.trim();
+        var wordToAnalyse = word.toLowerCase();
+
+        if (wordToPush.length > 1 && filterWord.indexOf(wordToAnalyse) == -1) {
+            wordToPush = wordToPush.replace(/\./g,"_");
+
+            if (this._wordCount[wordToPush]) {
+                this._wordCount[wordToPush]++;
             } else {
-                this._wordCount[word] = 1;
+                this._wordCount[wordToPush] = 1;
             }
             this._lastUpdate = moment();
         }
