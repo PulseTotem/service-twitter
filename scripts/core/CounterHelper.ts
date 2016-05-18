@@ -136,7 +136,7 @@ class CounterHelper {
         var filterWord = [
             "rt", "le", "la", "les", "au", "à", "dans", "en", "pour", "car", "ou",
             "ni", "mais", "donc", "et", "c'est", "ce", "ça", "ceci", "tous", "tout",
-            "où", "un", "une", "que", "pas", "the"
+            "où", "un", "une", "que", "pas", "the", "de", "des", "avec"
         ];
 
         var wordToPush = word.trim();
