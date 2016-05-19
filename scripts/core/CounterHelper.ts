@@ -164,12 +164,14 @@ class CounterHelper {
     }
 
     public pushDate(date : number) {
-        this._lastDatesForRate.unshift(date);
+
+        var dateInSecond = date / 1000;
+        this._lastDatesForRate.unshift(dateInSecond);
         this._lastDatesForRate = this._lastDatesForRate.splice(0, 10);
         this._lastUpdate = moment();
     }
 
-    public getRate() : number {
+    public getDelayBetweenTweets() : number {
         this._lastDatesForRate.sort(function (i,j) { return i - j; });
         this._lastDatesForRate.reverse();
 
@@ -177,25 +179,17 @@ class CounterHelper {
         var cumulatedTmeBetweenTweets = 0;
         var difference = 0;
 
-        Logger.debug("Get Rate : nbDates : "+nbDates);
-
         for (var i = 0; i < nbDates-2; i++) {
             var dateElement = this._lastDatesForRate[i];
             var dateBefore = this._lastDatesForRate[i+1];
 
             difference = dateElement-dateBefore;
-
-            Logger.debug("i:"+i+" Date 1:"+dateElement+" Date 2:"+dateBefore+" Difference: "+difference);
             cumulatedTmeBetweenTweets += difference;
         }
 
-        Logger.debug("Get Rate : cumulatedTimeBetweenTweets : "+cumulatedTmeBetweenTweets);
+        var delayBetweenTwoTweets = cumulatedTmeBetweenTweets / nbDates;
 
-        var averageTweetBySecond = cumulatedTmeBetweenTweets / nbDates;
-        var result : number = Math.round(60 / averageTweetBySecond);
-
-        Logger.debug("Get Rate : result : "+result);
-        return result;
+        return delayBetweenTwoTweets;
     }
 
     public updateCountersFromTweet(tweet : any, countRT : boolean) {
@@ -217,8 +211,8 @@ class CounterHelper {
                 }
             }
 
-            var dateInSecond = moment(new Date(tweet.created_at)).unix();
-            this.pushDate(dateInSecond);
+            var dateInMilliSecond = moment(new Date(tweet.created_at)).valueOf();;
+            this.pushDate(dateInMilliSecond);
 
             if (tweet.id > this._lastId) {
                 this.setLastId(tweet.id);
@@ -236,7 +230,7 @@ class CounterHelper {
             lastId: this._lastId,
             wordCount: this.getWordCount(),
             tagCount: this.getTagCount(),
-            rate: this.getRate()
+            delayBetweenTweets: this.getDelayBetweenTweets()
         };
     }
 

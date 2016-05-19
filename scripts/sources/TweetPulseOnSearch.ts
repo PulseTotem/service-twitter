@@ -36,11 +36,42 @@ class TweetPulseOnSearch extends TwitterUtils {
         var counterHelper : CounterHelper = CounterHelper.getCounter(searchQuery, startDate, includeRT);
 
         var createAndSendInfoFromCounterHelper = function () {
-            Logger.debug("Send pulse info with key "+counterHelper.getKey());
             var pulseList : PulseList = new PulseList(counterHelper.getKey()+"_pulselist");
 
             var pulse : PulseInfo = new PulseInfo(counterHelper.getKey());
-            pulse.setValue(counterHelper.getRate());
+
+            var delay : number = counterHelper.getDelayBetweenTweets();
+            var frequency : PulseFrequency;
+            var value : number;
+
+            if (delay < 1) {
+               value = 1 / delay;
+                frequency = PulseFrequency.SECONDLY;
+            } else if (delay < 60) {
+                value = 60 / delay;
+                frequency = PulseFrequency.MINUTELY;
+            } else if (delay > 60 && delay < 3600) {
+                value = 3600 / delay;
+                frequency = PulseFrequency.HOURLY;
+            } else if (delay > 3600 && delay < (24*3600)) {
+                value = (24*3600) / delay;
+                frequency = PulseFrequency.DAILY;
+            } else if (delay > (24*3600) && delay < (24*3600*7)) {
+                value = (24*3600*7) / delay;
+                frequency = PulseFrequency.WEEKLY;
+            } else if (delay > (24*3600*7) && delay < (24*3600*30)) {
+                value = (24*3600*30) / delay;
+                frequency = PulseFrequency.MONTHLY;
+            } else {
+                value = (24*3600*365) / delay;
+                frequency = PulseFrequency.YEARLY;
+            }
+
+            Logger.debug("Pulse info key :"+counterHelper.getKey()+" = "+value+" "+frequency);
+
+            pulse.setValue(value);
+            pulse.setFrequency(frequency);
+            pulse.setUnity("tweets");
             pulse.setDurationToDisplay(infoDuration);
 
             pulseList.addPulse(pulse);
