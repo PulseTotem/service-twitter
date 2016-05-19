@@ -218,7 +218,6 @@ class CounterHelper {
             }
 
             var dateInSecond = moment(new Date(tweet.created_at)).unix();
-            Logger.debug("Tweet created at: "+tweet.created_at+" Date in sec: "+dateInSecond);
             this.pushDate(dateInSecond);
 
             if (tweet.id > this._lastId) {
