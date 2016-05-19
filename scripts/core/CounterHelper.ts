@@ -177,6 +177,8 @@ class CounterHelper {
         var cumulatedTmeBetweenTweets = 0;
         var difference = 0;
 
+        Logger.debug("Get Rate : nbDates : "+nbDates);
+
         for (var i = 0; i < nbDates-2; i++) {
             var dateElement = this._lastDatesForRate[i];
             var dateBefore = this._lastDatesForRate[i-1];
@@ -185,8 +187,13 @@ class CounterHelper {
             cumulatedTmeBetweenTweets += difference;
         }
 
+        Logger.debug("Get Rate : cumulatedTimeBetweenTweets : "+cumulatedTmeBetweenTweets);
+
         var averageTweetBySecond = cumulatedTmeBetweenTweets / nbDates;
-        return Math.round(60 / averageTweetBySecond);
+        var result : number = Math.round(60 / averageTweetBySecond);
+
+        Logger.debug("Get Rate : result : "+result);
+        return result;
     }
 
     public updateCountersFromTweet(tweet : any, countRT : boolean) {
