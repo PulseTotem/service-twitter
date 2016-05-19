@@ -181,7 +181,7 @@ class CounterHelper {
 
         for (var i = 0; i < nbDates-2; i++) {
             var dateElement = this._lastDatesForRate[i];
-            var dateBefore = this._lastDatesForRate[i-1];
+            var dateBefore = this._lastDatesForRate[i+1];
 
             difference = dateElement-dateBefore;
 
@@ -218,6 +218,7 @@ class CounterHelper {
             }
 
             var dateInSecond = moment(new Date(tweet.created_at)).unix();
+            Logger.debug("Tweet created at: "+tweet.created_at+" Date in sec: "+dateInSecond);
             this.pushDate(dateInSecond);
 
             if (tweet.id > this._lastId) {
