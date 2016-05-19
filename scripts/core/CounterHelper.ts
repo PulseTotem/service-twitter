@@ -184,6 +184,8 @@ class CounterHelper {
             var dateBefore = this._lastDatesForRate[i-1];
 
             difference = dateElement-dateBefore;
+
+            Logger.debug("i:"+i+" Date 1:"+dateElement+" Date 2:"+dateBefore+" Difference: "+difference);
             cumulatedTmeBetweenTweets += difference;
         }
 
