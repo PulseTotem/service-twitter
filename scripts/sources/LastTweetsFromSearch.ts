@@ -38,13 +38,14 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var includeRT : boolean = (this.getParams().IncludeRT == "true");
 
 		var fail = function(error) {
+			Logger.debug("Error to get oauth authorization.");
 			if(error) {
 				Logger.error(error);
-				Logger.debug("Error to get oauth authorization.");
 			}
 		};
 
 		var success = function(oauthActions) {
+			Logger.debug("Success to get oauth");
 			var totalNumbers = limit * 3;
 			var min_id = Infinity;
 
