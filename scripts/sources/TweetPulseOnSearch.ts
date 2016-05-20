@@ -43,31 +43,39 @@ class TweetPulseOnSearch extends TwitterUtils {
             var delay : number = counterHelper.getDelayBetweenTweets();
             var frequency : PulseFrequency;
             var value : number;
+            var freqDebug : string;
 
             if (delay < 1) {
                value = 1 / delay;
                 frequency = PulseFrequency.SECONDLY;
+                freqDebug = "secondes";
             } else if (delay < 60) {
                 value = 60 / delay;
                 frequency = PulseFrequency.MINUTELY;
+                freqDebug = "minutes";
             } else if (delay > 60 && delay < 3600) {
                 value = 3600 / delay;
                 frequency = PulseFrequency.HOURLY;
+                freqDebug = "heures";
             } else if (delay > 3600 && delay < (24*3600)) {
                 value = (24*3600) / delay;
                 frequency = PulseFrequency.DAILY;
+                freqDebug = "jours";
             } else if (delay > (24*3600) && delay < (24*3600*7)) {
                 value = (24*3600*7) / delay;
                 frequency = PulseFrequency.WEEKLY;
+                freqDebug = "semaines";
             } else if (delay > (24*3600*7) && delay < (24*3600*30)) {
                 value = (24*3600*30) / delay;
                 frequency = PulseFrequency.MONTHLY;
+                freqDebug = "mois";
             } else {
                 value = (24*3600*365) / delay;
                 frequency = PulseFrequency.YEARLY;
+                freqDebug = "ans";
             }
 
-            Logger.debug("Pulse info key :"+counterHelper.getKey()+" = "+value+" "+frequency);
+            Logger.debug("Pulse info key :"+counterHelper.getKey()+" = "+value+" "+freqDebug+" (delay: "+delay+")");
 
             pulse.setValue(value);
             pulse.setFrequency(frequency);
