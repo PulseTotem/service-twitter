@@ -165,7 +165,7 @@ class TwitterUtils extends SourceItf {
 					Logger.debug("Date limite : "+startDate.format());
 				}
 
-				if (tweetDate.isBefore(startDate) || tweet.id == olderId) {
+				if (tweetDate.isBefore(startDate) || (tweet.id == olderId && olderTweetsResult.length == 1)) {
 					counterHelper.switchOffMining();
 					callbackSendInfo(counterHelper);
 					newOlderId = null;
