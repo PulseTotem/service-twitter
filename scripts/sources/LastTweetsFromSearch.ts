@@ -40,6 +40,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var fail = function(error) {
 			if(error) {
 				Logger.error(error);
+				Logger.debug("Error to get oauth authorization.");
 			}
 		};
 
