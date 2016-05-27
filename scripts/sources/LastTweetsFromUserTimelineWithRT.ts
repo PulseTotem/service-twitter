@@ -50,7 +50,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 				var tweetList:TweetList = new TweetList();
 
-				tweetList.setId("tweetlist_"+this.getParams().ScreenName);
+				tweetList.setId("tweetlist_"+self.getParams().ScreenName);
 				tweetList.setPriority(0);
 
 				var manageTweetsResult = function(tweets) {
