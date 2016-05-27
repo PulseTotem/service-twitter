@@ -37,6 +37,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var oauthKey : string = this.getParams().oauthKey;
 		var includeRT : boolean = (this.getParams().IncludeRT == "true");
 
+
 		var fail = function(error) {
 			Logger.debug("Error to get oauth authorization.");
 			if(error) {
@@ -54,7 +55,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 
 				var tweetList:TweetList = new TweetList();
 
-				tweetList.setId(uuid.v1());
+				tweetList.setId("tweetlist_"+query);
 				tweetList.setPriority(0);
 
 				var manageTweetsResult = function(tweets) {
