@@ -29,13 +29,5 @@ class TwitterNamespaceManager extends SourceNamespaceManager {
         this.addListenerToSocket('TweetWordCountOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetWordCountOnSearch(params, self)) });
         this.addListenerToSocket('TweetHashtagCountOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetHashtagCountOnSearch(params, self)) });
         this.addListenerToSocket('TweetPulseOnSearch', function(params : any, self : TwitterNamespaceManager) { (new TweetPulseOnSearch(params, self)) });
-
-        this.addListenerToSocket('RefreshInfos', function () { self.refreshInfos(); });
-    }
-
-    refreshInfos() {
-        var self = this;
-        var callBack = self.getClientCall().getCallCallback();
-        callBack(self.getClientCall().getCallParams(), self);
     }
 }
