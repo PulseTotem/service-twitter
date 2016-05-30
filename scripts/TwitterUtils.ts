@@ -154,10 +154,15 @@ class TwitterUtils extends SourceItf {
 		var newOlderId = olderId;
 
 		var successSearchOlder = function (result) {
+			var doRecursivity : boolean = false;
 			var olderTweetsResult = result.statuses;
 
 			// on récupère la valeur du dernier Id stocké
 			var lastOlderId = counterHelper.getLastId();
+
+			if (olderId != null) {
+				doRecursivity = true;
+			}
 
 			// les tweets sont lus du plus récent au plus vieux
 			for (var i = 0; i < olderTweetsResult.length; i++) {
@@ -172,11 +177,12 @@ class TwitterUtils extends SourceItf {
 
 				// on trouve un tweet plus vieux que la date limite
 				// Ou on trouve le tweet le plus vieux qu'on a miné et c'est le seul de la liste
-				if (tweetDate.isBefore(startDate) || (tweet.id == olderId && olderTweetsResult.length == 1)) {
+				if (tweetDate.isBefore(startDate) || (tweet.id <= olderId && olderTweetsResult.length == 1)) {
+					Logger.debug("Break the loop cause older tweet or only one tweet");
+					Logger.debug("Tweet ID : "+tweet.id+" OlderId : "+olderId);
 					counterHelper.switchOffMining();
 					callbackSendInfo();
-					newOlderId = null;
-					return;
+					doRecursivity = false;
 				}
 
 				// si on est en train de miner , on stocke la nouvelle valeur de olderId
@@ -195,6 +201,7 @@ class TwitterUtils extends SourceItf {
 				counterHelper.switchOffMining();
 				Logger.debug("No more tweets to mine!");
 				callbackSendInfo();
+				doRecursivity = false;
 			}
 
 			// on stocke la valeur de sinceId
@@ -210,12 +217,13 @@ class TwitterUtils extends SourceItf {
 				// (qui peut arriver si on doit récupérer 120 tweets, avec un requête de 100 tweets max)
 				// dans ce cas on met à jour le newSinceId
 				if (sinceId == retrievedSinceId) {
-					newSinceId = counterHelper.getLastId();
-					// alors pas besoin du newOlderId
-					newOlderId = null;
+					counterHelper.switchOffMining();
+					callbackSendInfo(counterHelper);
+					doRecursivity = false;
 				// dans le cas contraire : on doit récupérer les 20 tweets manquants
 				} else {
 					newSinceId = null;
+					doRecursivity = true;
 				}
 			}
 
@@ -232,18 +240,8 @@ class TwitterUtils extends SourceItf {
 				}
 			};
 
-			if (newOlderId != null && olderTweetsResult.length > 0) {
+			if (doRecursivity) {
 				recursivityWithTimeout();
-			}
-
-			if (sinceId != null && sinceId != 0 && olderTweetsResult.length > 0) {
-
-				if (sinceId != retrievedSinceId) {
-					recursivityWithTimeout();
-				} else {
-					counterHelper.switchOffMining();
-					callbackSendInfo(counterHelper);
-				}
 			}
 		};
 
