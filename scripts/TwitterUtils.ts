@@ -180,7 +180,6 @@ class TwitterUtils extends SourceItf {
 
 			// les tweets sont lus du plus récent au plus vieux
 			for (var i = 0; i < olderTweetsResult.length; i++) {
-				var recordTweet : boolean = true;
 				var tweet = olderTweetsResult[i];
 
 				var tweetDate = moment(new Date(tweet.created_at));
@@ -194,11 +193,11 @@ class TwitterUtils extends SourceItf {
 				if (tweetDate.isBefore(startDate) ||
 					(sinceId != null && parseInt(tweet.id) <= counterHelper.getLastId())) {
 					Logger.debug("Break the loop cause older tweet or only one tweet");
-					Logger.debug("Tweet ID : "+tweet.id+" OlderId : "+olderId);
+					Logger.debug("Tweet ID : "+tweet.id+" <= Last Id  : "+counterHelper.getLastId());
 					counterHelper.switchOffMining();
 					callbackSendInfo();
 					doRecursivity = false;
-					recordTweet = false; // dans ce cas on ne sauve pas le tweet
+					return; // leave the function
 				}
 
 				// si on est en train de miner , on stocke la nouvelle valeur de olderId
@@ -208,10 +207,8 @@ class TwitterUtils extends SourceItf {
 					newOlderId = tweet.id;
 				}
 
-				if (recordTweet) {
-					// on update le compteur avec le nouveau tweet
-					counterHelper.updateCountersFromTweet(tweet, countRT);
-				}
+				// on update le compteur avec le nouveau tweet
+				counterHelper.updateCountersFromTweet(tweet, countRT);
 			}
 
 			// on stocke la valeur de sinceId
