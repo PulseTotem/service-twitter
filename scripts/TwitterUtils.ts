@@ -154,18 +154,33 @@ class TwitterUtils extends SourceItf {
 		var newOlderId = olderId;
 
 		var successSearchOlder = function (result) {
-			var doRecursivity : boolean = false;
+			// Resultat de la requête
 			var olderTweetsResult = result.statuses;
 
-			// on récupère la valeur du dernier Id stocké
-			var lastOlderId = counterHelper.getLastId();
+			// doit on continuer la recursivite ?
+			var doRecursivity : boolean = false;
 
+			// Cas de la premiere requête : par defaut, on mine
+			if (olderId == null && sinceId == null) {
+				doRecursivity = true;
+			}
+
+			// Si jamais on est en train de miner, par défaut, on continue
 			if (olderId != null) {
 				doRecursivity = true;
 			}
 
+			// s'il n'y a plus de tweets, on arrête de miner
+			if (olderTweetsResult.length == 0) {
+				counterHelper.switchOffMining();
+				Logger.debug("No more tweets to mine!");
+				callbackSendInfo();
+				doRecursivity = false;
+			}
+
 			// les tweets sont lus du plus récent au plus vieux
 			for (var i = 0; i < olderTweetsResult.length; i++) {
+				var recordTweet : boolean = true;
 				var tweet = olderTweetsResult[i];
 
 				var tweetDate = moment(new Date(tweet.created_at));
@@ -177,12 +192,13 @@ class TwitterUtils extends SourceItf {
 
 				// on trouve un tweet plus vieux que la date limite
 				// Ou on trouve le tweet le plus vieux qu'on a miné et c'est le seul de la liste
-				if (tweetDate.isBefore(startDate) || (tweet.id <= olderId && olderTweetsResult.length == 1)) {
+				if (tweetDate.isBefore(startDate) || (olderId != null && tweet.id <= olderId && olderTweetsResult.length == 1)) {
 					Logger.debug("Break the loop cause older tweet or only one tweet");
 					Logger.debug("Tweet ID : "+tweet.id+" OlderId : "+olderId);
 					counterHelper.switchOffMining();
 					callbackSendInfo();
 					doRecursivity = false;
+					recordTweet = false; // dans ce cas on ne sauve pas le tweet
 				}
 
 				// si on est en train de miner , on stocke la nouvelle valeur de olderId
@@ -192,16 +208,10 @@ class TwitterUtils extends SourceItf {
 					newOlderId = tweet.id;
 				}
 
-				// on update le compteur avec le nouveau tweet
-				counterHelper.updateCountersFromTweet(tweet, countRT);
-			}
-
-			// s'il n'y a plus de tweets, on arrête de miner
-			if (olderTweetsResult.length == 0) {
-				counterHelper.switchOffMining();
-				Logger.debug("No more tweets to mine!");
-				callbackSendInfo();
-				doRecursivity = false;
+				if (recordTweet) {
+					// on update le compteur avec le nouveau tweet
+					counterHelper.updateCountersFromTweet(tweet, countRT);
+				}
 			}
 
 			// on stocke la valeur de sinceId
@@ -212,22 +222,19 @@ class TwitterUtils extends SourceItf {
 
 			// si on est en train de récupérer les nouveaux tweets
 			if (sinceId != null && sinceId != 0) {
-
 				// Si le sinceId correspond au retrieveSinceId : on n'a oublié aucun tweet en route
-				// (qui peut arriver si on doit récupérer 120 tweets, avec un requête de 100 tweets max)
-				// dans ce cas on met à jour le newSinceId
+				// dans ce cas on arrête de miner
 				if (sinceId == retrievedSinceId) {
 					counterHelper.switchOffMining();
 					callbackSendInfo(counterHelper);
 					doRecursivity = false;
-				// dans le cas contraire : on doit récupérer les 20 tweets manquants
+				// dans le cas contraire : on doit récupérer les tweets manquants : on continue de miner
 				} else {
 					newSinceId = null;
 					doRecursivity = true;
 				}
 			}
-
-
+			
 			var recursivityWithTimeout = function () {
 				if (iterationNumber == 20) {
 					Logger.debug("Pause in requests...");
