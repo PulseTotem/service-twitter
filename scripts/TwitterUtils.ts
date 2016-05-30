@@ -191,8 +191,8 @@ class TwitterUtils extends SourceItf {
 				}
 
 				// on trouve un tweet plus vieux que la date limite
-				// Ou on trouve le tweet le plus vieux qu'on a miné et c'est le seul de la liste
-				if (tweetDate.isBefore(startDate) || (olderId != null && tweet.id <= olderId && olderTweetsResult.length == 1)) {
+				if (tweetDate.isBefore(startDate) ||
+					(sinceId != null && parseInt(tweet.id) <= counterHelper.getLastId())) {
 					Logger.debug("Break the loop cause older tweet or only one tweet");
 					Logger.debug("Tweet ID : "+tweet.id+" OlderId : "+olderId);
 					counterHelper.switchOffMining();
@@ -234,7 +234,7 @@ class TwitterUtils extends SourceItf {
 					doRecursivity = true;
 				}
 			}
-			
+
 			var recursivityWithTimeout = function () {
 				if (iterationNumber == 20) {
 					Logger.debug("Pause in requests...");

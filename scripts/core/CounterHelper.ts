@@ -211,11 +211,11 @@ class CounterHelper {
                 }
             }
 
-            var dateInMilliSecond = moment(new Date(tweet.created_at)).valueOf();;
+            var dateInMilliSecond = moment(new Date(tweet.created_at)).valueOf();
             this.pushDate(dateInMilliSecond);
 
-            if (tweet.id > this._lastId) {
-                this.setLastId(tweet.id);
+            if (parseInt(tweet.id) > this._lastId) {
+                this.setLastId(parseInt(tweet.id));
             }
         }
     }
