@@ -145,56 +145,78 @@ class TwitterUtils extends SourceItf {
 		counterHelper.switchOnMining();
 		var apiUrl = originalApiUrl;
 
+		// OlderId != null -> on est en train de rechercher des vieux tweets
 		if (olderId != null) {
 			apiUrl += "&max_id="+olderId;
 		}
 
+		// On récupère la dernière valeur de olderId avant de lancer la requête
 		var newOlderId = olderId;
 
 		var successSearchOlder = function (result) {
 			var olderTweetsResult = result.statuses;
 
+			// on récupère la valeur du dernier Id stocké
 			var lastOlderId = counterHelper.getLastId();
 
+			// les tweets sont lus du plus récent au plus vieux
 			for (var i = 0; i < olderTweetsResult.length; i++) {
 				var tweet = olderTweetsResult[i];
 
 				var tweetDate = moment(new Date(tweet.created_at));
+
 				if (i % 20 == 0 || i == olderTweetsResult.length-1) {
 					Logger.debug("Date tweet (i = "+i+"): "+tweetDate.format());
 					Logger.debug("Date limite : "+startDate.format());
 				}
 
+				// on trouve un tweet plus vieux que la date limite
+				// Ou on trouve le tweet le plus vieux qu'on a miné et c'est le seul de la liste
 				if (tweetDate.isBefore(startDate) || (tweet.id == olderId && olderTweetsResult.length == 1)) {
 					counterHelper.switchOffMining();
-					callbackSendInfo(counterHelper);
+					callbackSendInfo();
 					newOlderId = null;
 					return;
 				}
 
-				if (olderId != null) {
-					newOlderId = Math.min(olderId, tweet.id);
+				// si on est en train de miner , on stocke la nouvelle valeur de olderId
+				if (newOlderId != null) {
+					newOlderId = Math.min(newOlderId, tweet.id);
 				} else {
-					if (sinceId == null || sinceId == 0) {
-						newOlderId = tweet.id;
-					}
+					newOlderId = tweet.id;
 				}
 
+				// on update le compteur avec le nouveau tweet
 				counterHelper.updateCountersFromTweet(tweet, countRT);
 			}
 
+			// s'il n'y a plus de tweets, on arrête de miner
 			if (olderTweetsResult.length == 0) {
 				counterHelper.switchOffMining();
 				Logger.debug("No more tweets to mine!");
 				callbackSendInfo();
 			}
 
+			// on stocke la valeur de sinceId
 			var newSinceId = sinceId;
+
+			// on récupère le sinceId renvoyé par la requête
 			var retrievedSinceId = result.search_metadata.since_id;
 
-			if (sinceId != null && sinceId != 0 && retrievedSinceId != sinceId) {
-				newSinceId = lastOlderId;
-				newOlderId = retrievedSinceId;
+			// si on est en train de récupérer les nouveaux tweets
+			if (sinceId != null && sinceId != 0) {
+
+				// Si le sinceId correspond au retrieveSinceId : on n'a oublié aucun tweet en route
+				// (qui peut arriver si on doit récupérer 120 tweets, avec un requête de 100 tweets max)
+				// dans ce cas on met à jour le newSinceId
+				if (sinceId == retrievedSinceId) {
+					newSinceId = counterHelper.getLastId();
+					// alors pas besoin du newOlderId
+					newOlderId = null;
+				// dans le cas contraire : on doit récupérer les 20 tweets manquants
+				} else {
+					newSinceId = null;
+				}
 			}
 
 
