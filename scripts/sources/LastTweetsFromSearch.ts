@@ -37,6 +37,8 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var oauthKey : string = this.getParams().oauthKey;
 		var includeRT : boolean = (this.getParams().IncludeRT == "true");
 
+		var apiCalls : number = 0;
+
 
 		var fail = function(error) {
 			Logger.debug("Error to get oauth authorization.");
@@ -48,6 +50,9 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var success = function(oauthActions) {
 			Logger.debug("Success to get oauth");
 			var totalNumbers = limit * 3;
+			if(totalNumbers > 100) {
+				totalNumbers = 100;
+			}
 			var min_id = Infinity;
 
 			var successSearch = function(result) {
@@ -58,7 +63,10 @@ class LastTweetsFromSearch extends TwitterUtils {
 				tweetList.setId("tweetlist_"+query);
 				tweetList.setPriority(0);
 
+				var tweetsToProcess = [];
+
 				var manageTweetsResult = function(tweets) {
+					apiCalls++;
 
 					for (var iTweet in tweets) {
 						var item:any = tweets[iTweet];
@@ -66,18 +74,15 @@ class LastTweetsFromSearch extends TwitterUtils {
 						min_id = Math.min(min_id, item.id);
 
 						if (typeof(item.retweeted_status) == "undefined" || typeof(item.retweeted_status.id_str) == "undefined" || includeRT) {
+							tweetsToProcess.push(item);
 
-							var tweet : Tweet = self.createTweet(item);
-							tweetList.addTweet(tweet);
-
-							if(tweetList.getTweets().length == limit) {
+							if(tweetsToProcess.length == limit) {
 								break;
 							}
-
 						}
 					}
 
-					if(tweetList.getTweets().length < parseInt(self.getParams().Limit) && tweets.length == totalNumbers) {
+					if(tweetsToProcess.length < limit && tweets.length == totalNumbers) {
 						var successSearchOlder = function(result) {
 							var olderTweetsResult = result.statuses;
 
@@ -85,11 +90,75 @@ class LastTweetsFromSearch extends TwitterUtils {
 						};
 
 						var searchOlderUrl = '/1.1/search/tweets.json?q=' + query + '&count=' + totalNumbers + '&result_type=recent&max_id=' + min_id.toString();
-						oauthActions.get(searchOlderUrl, successSearchOlder, fail);
+						if(apiCalls < 20) {
+							oauthActions.get(searchOlderUrl, successSearchOlder, fail);
+						} else {
+							setTimeout(function () {
+								apiCalls = 0;
+								oauthActions.get(searchOlderUrl, successSearchOlder, fail);
+							}, 180000);
+						}
 					} else {
-						tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
 
-						self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
+						var tweetsToCreate = [];
+
+						//Create tweets and send result
+						var createTweets = function() {
+							tweetsToCreate.forEach(function(item : any) {
+								var tweet : Tweet = self.createTweet(item);
+								tweetList.addTweet(tweet);
+							});
+
+							tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
+
+							self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
+						};
+
+						//Retrieve complete description for Tweets
+						var lookupTweets = function() {
+							var toProcess = [];
+							var needToContinue = false;
+
+							if(tweetsToProcess.length > 100) {
+								toProcess = tweetsToProcess.splice(0,100);
+								needToContinue = true;
+							} else {
+								toProcess = tweetsToProcess;
+							}
+
+							var toProcessIds = [];
+
+							toProcess.forEach(function(item : any) {
+								toProcessIds.push(item.id_str);
+							});
+
+							var toProcessIdsString = toProcessIds.join(",");
+
+							var successLookup = function(result) {
+								apiCalls++;
+
+								tweetsToCreate = tweetsToCreate.concat(result);
+
+								if(needToContinue) {
+									lookupTweets();
+								} else {
+									createTweets();
+								}
+							};
+
+							var lookupUrl = '/1.1/statuses/lookup.json?id=' + toProcessIdsString + '&include_entities=true';
+
+							if(apiCalls < 20) {
+								oauthActions.get(lookupUrl, successLookup, fail);
+							} else {
+								setTimeout(function () {
+									apiCalls = 0;
+									oauthActions.get(lookupUrl, successLookup, fail);
+								}, 180000);
+							}
+						};
+
+						lookupTweets();
 					}
 				};
 
