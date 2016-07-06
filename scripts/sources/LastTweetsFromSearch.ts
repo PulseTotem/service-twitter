@@ -107,11 +107,11 @@ class LastTweetsFromSearch extends TwitterUtils {
 							tweetsToCreate.forEach(function(item : any) {
 								var tweet : Tweet = self.createTweet(item);
 								tweetList.addTweet(tweet);
-
-								tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
-
-								self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
 							});
+
+							tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
+
+							self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
 						};
 
 						//Retrieve complete description for Tweets
