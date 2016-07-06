@@ -46,35 +46,42 @@ class TwitterUtils extends SourceItf {
 		picture.setTitle("");
 		picture.setDescription("");
 
+		var mediaUrl : string = "";
+		if(typeof(media["media_url_https"]) != "undefined") {
+			mediaUrl = media.media_url_https;
+		} else {
+			mediaUrl = media.media_url;
+		}
+
 		var pictUrl_original : PictureURL = new PictureURL(media.id_str+"_original");
-		pictUrl_original.setURL(media.media_url);
+		pictUrl_original.setURL(mediaUrl);
 		pictUrl_original.setWidth(media.sizes.medium.w);
 		pictUrl_original.setHeight(media.sizes.medium.h);
 		picture.setOriginal(pictUrl_original);
 
 		var pictUrl_small : PictureURL = new PictureURL(media.id_str+"_small");
-		pictUrl_small.setURL(media.media_url + ":small");
+		pictUrl_small.setURL(mediaUrl + ":small");
 		pictUrl_small.setWidth(media.sizes.small.w);
 		pictUrl_small.setHeight(media.sizes.small.h);
 
 		picture.setSmall(pictUrl_small);
 
 		var pictUrl_medium : PictureURL = new PictureURL(media.id_str+"_medium");
-		pictUrl_medium.setURL(media.media_url);
+		pictUrl_medium.setURL(mediaUrl);
 		pictUrl_medium.setWidth(media.sizes.medium.w);
 		pictUrl_medium.setHeight(media.sizes.medium.h);
 
 		picture.setMedium(pictUrl_medium);
 
 		var pictUrl_large : PictureURL = new PictureURL(media.id_str+"_large");
-		pictUrl_large.setURL(media.media_url + ":large");
+		pictUrl_large.setURL(mediaUrl + ":large");
 		pictUrl_large.setWidth(media.sizes.large.w);
 		pictUrl_large.setHeight(media.sizes.large.h);
 
 		picture.setLarge(pictUrl_large);
 
 		var pictUrl_thumb : PictureURL = new PictureURL(media.id_str+"_thumb");
-		pictUrl_thumb.setURL(media.media_url + ":thumb");
+		pictUrl_thumb.setURL(mediaUrl + ":thumb");
 		pictUrl_thumb.setWidth(media.sizes.thumb.w);
 		pictUrl_thumb.setHeight(media.sizes.thumb.h);
 
