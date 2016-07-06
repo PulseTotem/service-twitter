@@ -90,12 +90,12 @@ class TwitterUtils extends SourceItf {
 		return picture;
 	}
 
-	public removeMediaURLFromTweet(tweet : Tweet, media : any) {
-		if (media.url != null && media.url != "undefined") {
+	public removeMediaURLFromTweet(tweet : Tweet, mediaUrl : any) {
+		if (mediaUrl != null && mediaUrl != "undefined") {
 			var oldMessage = tweet.getMessage();
-			var index = oldMessage.indexOf(media.url);
+			var index = oldMessage.indexOf(mediaUrl);
 			if (index !== -1) {
-				var message = oldMessage.substr(0, index)+oldMessage.substr(index+media.url.length, oldMessage.length-media.url.length);
+				var message = oldMessage.substr(0, index)+oldMessage.substr(index+mediaUrl.length, oldMessage.length-mediaUrl.length);
 				tweet.setMessage(message);
 			}
 		}
@@ -131,14 +131,13 @@ class TwitterUtils extends SourceItf {
 		if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
 			item.entities.media.forEach(function (media:any) {
 				if (media.type == "photo") {
-
 					var picture:Picture = self.retrievePictureEntity(media);
 					tweet.getHashtags().forEach(function (tag) {
 						picture.addTag(tag);
 					});
 					picture.setOwner(owner);
 					tweet.addPicture(picture);
-					self.removeMediaURLFromTweet(tweet, media);
+					self.removeMediaURLFromTweet(tweet, media.url);
 				}
 			});
 		}
