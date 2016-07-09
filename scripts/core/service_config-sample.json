@@ -1,3 +1,4 @@
 {
-  "statHost": "http://localhost:11000/crud/"
+  "statHost": "http://localhost:11000/crud/",
+  "moderationHost": "http://localhost:13000/moderate/"
 }

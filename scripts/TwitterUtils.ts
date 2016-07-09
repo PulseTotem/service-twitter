@@ -13,6 +13,7 @@
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/VideoURL.ts" />
 /// <reference path="../t6s-core/core-backend/t6s-core/core/scripts/infotype/VideoType.ts" />
 /// <reference path="../t6s-core/core-backend/scripts/server/SourceItf.ts" />
+/// <reference path="../t6s-core/core-backend/scripts/RestClient.ts" />
 
 /// <reference path="./TwitterNamespaceManager.ts" />
 /// <reference path="../t6s-core/core-backend/libsdef/node-uuid.d.ts" />
@@ -121,78 +122,105 @@ class TwitterUtils extends SourceItf {
 		}
 	}
 
-	public createTweet(item : any) : Tweet  {
+	public createTweet(item : any, callback : Function, moderation : boolean = false)  {
 		var self = this;
 		var tweet:Tweet = new Tweet(item.id_str, 0, new Date(item.created_at), new Date(), parseInt(self.getParams().InfoDuration));
 
 		var owner:User = self.retrieveTwitterUser(item);
 
-		tweet.setOwner(owner);
-		tweet.setMessage(item.text);
-		tweet.setFavoriteCount(item.favorite_count);
-		tweet.setRetweetCount(item.retweet_count);
-		tweet.setLang(item.lang);
-		var sens:boolean = false;
-		if (item.possibly_sensitive != null) {
-			sens = item.possibly_sensitive;
-		}
-		tweet.setSensitive(sens);
+		var failModerationRequest = function (error) {
+			if (error.status == 403) {
+				Logger.info("Moderating content");
+				Logger.debug(item);
+				callback(null);
+			} else {
+				Logger.error("Error while moderating content");
+				Logger.debug(error);
+				successModerationRequest();
+			}
+		};
+
+		var successModerationRequest = function () {
+			tweet.setOwner(owner);
+			tweet.setMessage(item.text);
+			tweet.setFavoriteCount(item.favorite_count);
+			tweet.setRetweetCount(item.retweet_count);
+			tweet.setLang(item.lang);
+			var sens:boolean = false;
+			if (item.possibly_sensitive != null) {
+				sens = item.possibly_sensitive;
+			}
+			tweet.setSensitive(sens);
 
 
-		if (typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
-			item.entities.hashtags.forEach(function (hashtag:any) {
-				var tag:Tag = new Tag(uuid.v1(), 0, new Date(), new Date());
-				tag.setName(hashtag.text);
+			if (typeof(item.entities) != "undefined" && typeof(item.entities.hashtags) != "undefined") {
+				item.entities.hashtags.forEach(function (hashtag:any) {
+					var tag:Tag = new Tag(uuid.v1(), 0, new Date(), new Date());
+					tag.setName(hashtag.text);
 
-				tweet.addHashtag(tag);
-			});
-		}
-
-		if (typeof(item.extended_entities) != "undefined" && typeof(item.extended_entities.media) != "undefined") {
-			item.extended_entities.media.forEach(function (media:any) {
-				switch(media.type) {
-					case "photo" :
-						var picture:Picture = self.retrievePictureEntity(media);
-						tweet.getHashtags().forEach(function (tag) {
-							picture.addTag(tag);
-						});
-						picture.setOwner(owner);
-						tweet.addPicture(picture);
-						self.removeMediaURLFromTweet(tweet, media.url);
-						break;
-					case "animated_gif":
-						var picture:Picture = self.retrievePictureEntity(media);
-						tweet.getHashtags().forEach(function (tag) {
-							picture.addTag(tag);
-						});
-						picture.setOwner(owner);
-						self.removeMediaURLFromTweet(tweet, media.url);
-
-						var animatedGif : VideoURL = self.retrieveVideoEntity(media);
-						if(animatedGif != null) {
-							animatedGif.setThumbnail(picture);
-							tweet.addAnimatedGif(animatedGif);
-						}
-						break;
-				}
-			});
-		} else {
-			if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
-				item.entities.media.forEach(function (media:any) {
-					if (media.type == "photo") {
-						var picture:Picture = self.retrievePictureEntity(media);
-						tweet.getHashtags().forEach(function (tag) {
-							picture.addTag(tag);
-						});
-						picture.setOwner(owner);
-						tweet.addPicture(picture);
-						self.removeMediaURLFromTweet(tweet, media.url);
-					}
+					tweet.addHashtag(tag);
 				});
 			}
-		}
 
-		return tweet;
+			if (typeof(item.extended_entities) != "undefined" && typeof(item.extended_entities.media) != "undefined") {
+				item.extended_entities.media.forEach(function (media:any) {
+					switch(media.type) {
+						case "photo" :
+							var picture:Picture = self.retrievePictureEntity(media);
+							tweet.getHashtags().forEach(function (tag) {
+								picture.addTag(tag);
+							});
+							picture.setOwner(owner);
+							tweet.addPicture(picture);
+							self.removeMediaURLFromTweet(tweet, media.url);
+							break;
+						case "animated_gif":
+							var picture:Picture = self.retrievePictureEntity(media);
+							tweet.getHashtags().forEach(function (tag) {
+								picture.addTag(tag);
+							});
+							picture.setOwner(owner);
+							self.removeMediaURLFromTweet(tweet, media.url);
+
+							var animatedGif : VideoURL = self.retrieveVideoEntity(media);
+							if(animatedGif != null) {
+								animatedGif.setThumbnail(picture);
+								tweet.addAnimatedGif(animatedGif);
+							}
+							break;
+					}
+				});
+			} else {
+				if (typeof(item.entities) != "undefined" && typeof(item.entities.media) != "undefined") {
+					item.entities.media.forEach(function (media:any) {
+						if (media.type == "photo") {
+							var picture:Picture = self.retrievePictureEntity(media);
+							tweet.getHashtags().forEach(function (tag) {
+								picture.addTag(tag);
+							});
+							picture.setOwner(owner);
+							tweet.addPicture(picture);
+							self.removeMediaURLFromTweet(tweet, media.url);
+						}
+					});
+				}
+			}
+
+			callback(tweet);
+		};
+
+		if (moderation) {
+			var requestData = {
+				lang: item.lang,
+				text: item.text,
+				id: item.id.toString(),
+				username: owner.getUsername()
+			};
+
+			RestClient.post(ServiceConfig.getModerationHost(), requestData, successModerationRequest, failModerationRequest);
+		} else {
+			successModerationRequest();
+		}
 	}
 
 	public mineTwitter(oauthActions : any, originalApiUrl : string, startDate : any, counterHelper : CounterHelper, olderId : number, sinceId : number, countRT : boolean, callbackSendInfo : Function, iterationNumber) {

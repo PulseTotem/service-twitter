@@ -21,6 +21,13 @@ class ServiceConfig {
 	static statHost : string = "";
 
 	/**
+	 * Moderation service host
+	 * @type {string}
+	 * @static
+     */
+	static moderationHost : string = "";
+
+	/**
 	 * Retrieve configuration information from file description.
 	 *
 	 * @method retrieveConfigurationInformation
@@ -32,6 +39,7 @@ class ServiceConfig {
 			try {
 				var configInfos = JSON.parse(fs.readFileSync(file, 'utf8'));
 				ServiceConfig.statHost = configInfos.statHost;
+				ServiceConfig.moderationHost = configInfos.moderationHost;
 			} catch (e) {
 				Logger.error("Service configuration file can't be read.");
 				Logger.debug(e);
@@ -47,5 +55,15 @@ class ServiceConfig {
 	static getStatHost() : string {
 		ServiceConfig.retrieveConfigurationInformation();
 		return ServiceConfig.statHost;
+	}
+
+	/**
+	 * Return host for moderation
+	 * @static
+	 * @returns {string}
+     */
+	static getModerationHost() : string {
+		ServiceConfig.retrieveConfigurationInformation();
+		return ServiceConfig.moderationHost;
 	}
 }
