@@ -6,3 +6,4 @@ core-repos-config.json
 package-bak.json
 package-tmp.json
 heroku
+scripts/core/service_config.json

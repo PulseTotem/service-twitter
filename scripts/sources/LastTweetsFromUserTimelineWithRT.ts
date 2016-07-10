@@ -25,16 +25,26 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 	constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
 		super(params, twitterNamespaceManager);
-		this.run();
-	}
-
-	private computeSourceUrl = function (totalNumbers) {
-		return '/1.1/statuses/user_timeline.json?screen_name=' + this.getParams().ScreenName + '&count=' + totalNumbers + '&exclude_replies=true&include_rts=true';
+		if (this.checkParams(["InfoDuration","Limit", "ScreenName", "IncludeRT", "oauthKey", "Moderation"])) {
+			this.run();
+		}
 	}
 
 	public run() {
 		var self = this;
 		var apiCalls : number = 0;
+		var limit : number = parseInt(this.getParams().Limit);
+		var infoDuration : number = parseInt(this.getParams().InfoDuration);
+		var screenName : string = this.getParams().ScreenName;
+		var oauthKey : string = this.getParams().oauthKey;
+		var includeRT : boolean = (this.getParams().IncludeRT == "true");
+		var moderation : boolean = (this.getParams().Moderation == "true");
+
+		var totalNumbers = limit*3;
+		if(totalNumbers > 100) {
+			totalNumbers = 100;
+		}
+		var queryUrl = '/1.1/statuses/user_timeline.json?screen_name=' + screenName + '&count=' + totalNumbers + '&exclude_replies=true&include_rts='+includeRT;
 
 		var fail = function(error) {
 			if(error) {
@@ -43,12 +53,6 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 		};
 
 		var success = function(oauthActions) {
-			var totalNumbers = parseInt(self.getParams().Limit) * 3;
-
-			if(totalNumbers > 100) {
-				totalNumbers = 100;
-			}
-
 			var min_id = Infinity;
 
 			var successSearch = function(result) {
@@ -56,7 +60,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 				var tweetList:TweetList = new TweetList();
 
-				tweetList.setId("tweetlist_"+self.getParams().ScreenName);
+				tweetList.setId("tweetlist_"+screenName);
 				tweetList.setPriority(0);
 
 				var tweetsToProcess = [];
@@ -71,7 +75,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 						tweetsToProcess.push(item);
 
-						if (tweetsToProcess.length == parseInt(self.getParams().Limit)) {
+						if (tweetsToProcess.length == limit) {
 							break;
 						}
 					}
@@ -83,7 +87,7 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 							manageTweetsResult(olderTweetsResult);
 						};
 
-						var searchOlderUrl = self.computeSourceUrl(totalNumbers)+'&max_id=' + min_id.toString();
+						var searchOlderUrl = queryUrl+'&max_id=' + min_id.toString();
 
 						if(apiCalls < 20) {
 							oauthActions.get(searchOlderUrl, successSearchOlder, fail);
@@ -99,20 +103,28 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 
 						//Create tweets and send result
 						var createTweets = function() {
+							var counterTweet = 0;
+							var successCreateTweet = function (tweet : Tweet) {
+								counterTweet++;
+								if (tweet != null) {
+									tweetList.addTweet(tweet);
+								}
+
+								if (counterTweet == tweetsToCreate.length) {
+									tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
+									self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
+								}
+							};
+
 							tweetsToCreate.forEach(function(item : any) {
-								 var tweet : Tweet = self.createTweet(item);
-
-								 if (typeof(item.retweeted_status) != "undefined") {
+								 if (typeof(item.retweeted_status) != "undefined" && includeRT) {
 								 	Logger.debug("Manage retweet and create tweet");
-								 	var originalTweet : Tweet = self.createTweet(item.retweeted_status);
-								 	tweet.setOriginalTweet(originalTweet);
+									self.createTweet(item.retweeted_status, successCreateTweet, moderation);
+								 	//tweet.setOriginalTweet(originalTweet);
+								 } else {
+									 self.createTweet(item, successCreateTweet, moderation);
 								 }
-								 tweetList.addTweet(tweet);
 							});
-
-							tweetList.setDurationToDisplay(parseInt(self.getParams().InfoDuration) * tweetList.getTweets().length);
-
-							self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
 						};
 
 						//Retrieve complete description for Tweets
@@ -166,9 +178,9 @@ class LastTweetsFromUserTimelineWithRT extends TwitterUtils {
 				manageTweetsResult(tweetsResult);
 			};
 
-			oauthActions.get(self.computeSourceUrl(totalNumbers), successSearch, fail);
+			oauthActions.get(queryUrl, successSearch, fail);
 		};
 
-		self.getSourceNamespaceManager().manageOAuth('twitter', self.getParams().oauthKey, success, fail);
+		self.getSourceNamespaceManager().manageOAuth('twitter',oauthKey, success, fail);
 	}
 }

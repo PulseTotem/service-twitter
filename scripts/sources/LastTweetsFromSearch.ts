@@ -24,7 +24,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 
 	constructor(params : any, twitterNamespaceManager : TwitterNamespaceManager) {
 		super(params, twitterNamespaceManager);
-		if (this.checkParams(["InfoDuration","Limit", "SearchQuery", "IncludeRT", "oauthKey"])) {
+		if (this.checkParams(["InfoDuration","Limit", "SearchQuery", "IncludeRT", "oauthKey", "Moderation"])) {
 			this.run();
 		}
 	}
@@ -36,6 +36,7 @@ class LastTweetsFromSearch extends TwitterUtils {
 		var query : string = this.manageQuery(this.getParams().SearchQuery);
 		var oauthKey : string = this.getParams().oauthKey;
 		var includeRT : boolean = (this.getParams().IncludeRT == "true");
+		var moderation : boolean = (this.getParams().Moderation == "true");
 
 		var apiCalls : number = 0;
 
@@ -104,14 +105,23 @@ class LastTweetsFromSearch extends TwitterUtils {
 
 						//Create tweets and send result
 						var createTweets = function() {
+
+							var counterTweet = 0;
+							var successCreateTweet = function (tweet : Tweet) {
+								counterTweet++;
+								if (tweet != null) {
+									tweetList.addTweet(tweet);
+								}
+
+								if (counterTweet == tweetsToCreate.length) {
+									tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
+									self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
+								}
+							};
+
 							tweetsToCreate.forEach(function(item : any) {
-								var tweet : Tweet = self.createTweet(item);
-								tweetList.addTweet(tweet);
+								self.createTweet(item, successCreateTweet, moderation);
 							});
-
-							tweetList.setDurationToDisplay(infoDuration * tweetList.getTweets().length);
-
-							self.getSourceNamespaceManager().sendNewInfoToClient(tweetList);
 						};
 
 						//Retrieve complete description for Tweets
