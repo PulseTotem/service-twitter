@@ -30,6 +30,8 @@ class TwitterUtils extends SourceItf {
 		super(params, twitterNamespaceManager);
 	}
 
+
+
 	public retrieveTwitterUser(item : any) : User {
 		var twittos = item.user;
 		var owner : User = new User(twittos.id_str, 0, new Date(twittos.created_at), new Date());
@@ -128,14 +130,37 @@ class TwitterUtils extends SourceItf {
 
 		var owner:User = self.retrieveTwitterUser(item);
 
-		var failModerationRequest = function (error) {
-			if (error.status == 403) {
+		var pushStat = function() {
+			var stat : StatObject = new StatObject();
+			stat.setCollection("moderation-twitter");
+			var data = {
+				'username': owner.getUsername(),
+				'text': item.text,
+				'tweetid': item.id_str
+			};
+
+			stat.setData(data);
+
+			var urlPostStat = ServiceConfig.getStatHost()+"create";
+
+			RestClient.post(urlPostStat, stat.toJSON(), function () {
+				Logger.debug("Stat has been posted.");
+			}, function (err) {
+				Logger.debug("Error when posting the stat on the following URL: "+urlPostStat);
+				Logger.debug("Object send:");
+				Logger.debug(stat);
+			});
+		};
+
+		var failModerationRequest = function (errorResponse : RestClientResponse) {
+			if (errorResponse.statusCode() == 403) {
 				Logger.info("Moderating content");
-				Logger.debug(item);
+				Logger.debug(item.id_str+" - "+owner.getUsername()+" : "+item.text);
+				pushStat();
 				callback(null);
 			} else {
 				Logger.error("Error while moderating content");
-				Logger.debug(error);
+				Logger.debug(errorResponse.response());
 				successModerationRequest();
 			}
 		};
@@ -213,7 +238,7 @@ class TwitterUtils extends SourceItf {
 			var requestData = {
 				lang: item.lang,
 				text: item.text,
-				id: item.id.toString(),
+				id: item.id_str,
 				username: owner.getUsername()
 			};
 
